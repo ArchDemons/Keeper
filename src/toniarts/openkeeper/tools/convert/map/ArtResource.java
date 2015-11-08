@@ -66,7 +66,8 @@ public class ArtResource {
         MESH(5),
         ANIMATING_MESH(6),
         PROCEDURAL_MESH(7),
-        MESH_COLLECTION(8);
+        MESH_COLLECTION(8),
+        UNKNOWN(12);  // FIXME
 
         private Type(int id) {
             this.id = id;

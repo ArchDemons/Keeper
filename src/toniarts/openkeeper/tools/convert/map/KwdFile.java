@@ -158,6 +158,7 @@ public final class KwdFile {
         MY_PET_DUNGEON_4(37),
         MY_PET_DUNGEON_5(38),
         MY_PET_DUNGEON_6(39),
+        //UNKNOWN(40),  // FIXME
         MULTI_PLAYER_2(41),
         MULTI_PLAYER_3(42),
         MULTI_PLAYER_4(43),
@@ -2344,7 +2345,7 @@ public final class KwdFile {
                 }
             }
 
-            System.out.println(thingTag[0] + " type");
+            //System.out.println(thingTag[0] + " type");
 
             // Add to the list
             things.add(thing);
