@@ -116,10 +116,10 @@ public class Terrain implements Comparable<Terrain> {
     //  uint32_t unk224; /* 224 */
     //};
     private String name;
-    private ArtResource completeResource; // 20
-    private ArtResource sideResource; // 74
-    private ArtResource topResource; // c8
-    private ArtResource taggedTopResource; // 11c
+    private ArtResource resourceComplete; // 20
+    private ArtResource resourceSide; // 74
+    private ArtResource resourceTop; // c8
+    private ArtResource resourceTaggedTop; // 11c
     private StringId stringIds; // 170
     private float depth; // 188
     private float lightHeight; // 18c, fixed point
@@ -129,7 +129,7 @@ public class Terrain implements Comparable<Terrain> {
     private int unk198; // 198
     private int goldValue; // 19a
     private int manaGain; // 19c
-    private int maxManaGain; // 19e
+    private int manaGainMax; // 19e
     private int tooltipStringId; // 1a0
     private int nameStringId; // 1a2
     private int maxHealthEffectId; // 1a4
@@ -143,14 +143,14 @@ public class Terrain implements Comparable<Terrain> {
     private short wibbleV; // 1d2
     private short[] leanV; // 1d3
     private short terrainId; // 1d6
-    private int startingHealth; // 1d7
-    private short maxHealthTypeTerrainId; // 1d9
+    private int healthStarting; // 1d7
+    private short healthMaxTypeTerrainId; // 1d9
     private short destroyedTypeTerrainId; // 1da
-    private Color terrainLight; // 1db
+    private Color lightTerrain; // 1db
     private short textureFrames; // 1de
     private String soundCategory; // 1df
-    private int maxHealth; // 1ff
-    private Color ambientLight; // 201
+    private int healthMax; // 1ff
+    private Color lightAmbient; // 201
     private String soundCategoryFirstPerson; // 204
     private int unk224; // 224
 
@@ -227,11 +227,11 @@ public class Terrain implements Comparable<Terrain> {
     }
 
     public int getMaxManaGain() {
-        return maxManaGain;
+        return manaGainMax;
     }
 
     protected void setMaxManaGain(int maxManaGain) {
-        this.maxManaGain = maxManaGain;
+        this.manaGainMax = maxManaGain;
     }
 
     public int getTooltipStringId() {
@@ -339,19 +339,19 @@ public class Terrain implements Comparable<Terrain> {
     }
 
     public int getStartingHealth() {
-        return startingHealth;
+        return healthStarting;
     }
 
     protected void setStartingHealth(int startingHealth) {
-        this.startingHealth = startingHealth;
+        this.healthStarting = startingHealth;
     }
 
     public short getMaxHealthTypeTerrainId() {
-        return maxHealthTypeTerrainId;
+        return healthMaxTypeTerrainId;
     }
 
     protected void setMaxHealthTypeTerrainId(short maxHealthTypeTerrainId) {
-        this.maxHealthTypeTerrainId = maxHealthTypeTerrainId;
+        this.healthMaxTypeTerrainId = maxHealthTypeTerrainId;
     }
 
     public short getDestroyedTypeTerrainId() {
@@ -363,11 +363,11 @@ public class Terrain implements Comparable<Terrain> {
     }
 
     public Color getTerrainLight() {
-        return terrainLight;
+        return lightTerrain;
     }
 
     protected void setTerrainLight(Color terrainLight) {
-        this.terrainLight = terrainLight;
+        this.lightTerrain = terrainLight;
     }
 
     public short getTextureFrames() {
@@ -387,19 +387,19 @@ public class Terrain implements Comparable<Terrain> {
     }
 
     public int getMaxHealth() {
-        return maxHealth;
+        return healthMax;
     }
 
     protected void setMaxHealth(int maxHealth) {
-        this.maxHealth = maxHealth;
+        this.healthMax = maxHealth;
     }
 
     public Color getAmbientLight() {
-        return ambientLight;
+        return lightAmbient;
     }
 
     protected void setAmbientLight(Color ambientLight) {
-        this.ambientLight = ambientLight;
+        this.lightAmbient = ambientLight;
     }
 
     public String getSoundCategoryFirstPerson() {
@@ -419,35 +419,35 @@ public class Terrain implements Comparable<Terrain> {
     }
 
     public ArtResource getCompleteResource() {
-        return completeResource;
+        return resourceComplete;
     }
 
     protected void setCompleteResource(ArtResource completeResource) {
-        this.completeResource = completeResource;
+        this.resourceComplete = completeResource;
     }
 
     public ArtResource getSideResource() {
-        return sideResource;
+        return resourceSide;
     }
 
     protected void setSideResource(ArtResource sideResource) {
-        this.sideResource = sideResource;
+        this.resourceSide = sideResource;
     }
 
     public ArtResource getTopResource() {
-        return topResource;
+        return resourceTop;
     }
 
     protected void setTopResource(ArtResource topResource) {
-        this.topResource = topResource;
+        this.resourceTop = topResource;
     }
 
     public ArtResource getTaggedTopResource() {
-        return taggedTopResource;
+        return resourceTaggedTop;
     }
 
     protected void setTaggedTopResource(ArtResource taggedTopResource) {
-        this.taggedTopResource = taggedTopResource;
+        this.resourceTaggedTop = taggedTopResource;
     }
 
     public StringId getStringIds() {

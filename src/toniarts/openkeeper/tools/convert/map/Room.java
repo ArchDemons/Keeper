@@ -123,18 +123,18 @@ public class Room implements Comparable<Room> {
     //  short x41d; /* 41d */
     //};
     private String name; // 0
-    private ArtResource guiIcon; // 20
-    private ArtResource editorIcon; // 74
-    private ArtResource completeResource; // c8
-    private ArtResource straightResource; // 11c
-    private ArtResource insideCornerResource;
-    private ArtResource unknownResource;
-    private ArtResource outsideCornerResource;
-    private ArtResource wallResource;
-    private ArtResource capResource; // Capture?
-    private ArtResource ceilingResource;
+    private ArtResource iconGui; // 20
+    private ArtResource iconEditor; // 74
+    private ArtResource resourceComplete; // c8
+    private ArtResource resourceStraight; // 11c
+    private ArtResource resourceInsideCorner;
+    private ArtResource resourceUnknown;  // values: null
+    private ArtResource resourceOutsideCorner;
+    private ArtResource resourceWall;
+    private ArtResource resourceCap; // Capture?
+    private ArtResource resourceCeiling;
     private float ceilingHeight; // 368 - very likely flags
-    private int unknown2; // 36c
+    private int unknown2; // 36c  // values: 40899, 0
     private int torchIntensity; // 36e
     private EnumSet<RoomFlag> flags; // 370
     private int tooltipStringId;
@@ -146,7 +146,7 @@ public class Room implements Comparable<Room> {
     private float torchRadius; // 380
     private List<Integer> effects; // 382, in editor there are just 6
     private short roomId; // 392
-    private short unknown7; // 393
+    private short unknown7; // 393  // values: 100, 0
     private short terrainId; // 394
     private TileConstruction tileConstruction; // 395
     private short createdCreatureId; // 396
@@ -154,9 +154,9 @@ public class Room implements Comparable<Room> {
     private List<Short> objects; // 39a, in editor there are just 6
     private String soundCategory; // 3a2
     private short orderInEditor; // 3c2
-    private short x3c3; // 3c3
-    private int unknown10; // 3c4
-    private short unknown11; // 3c6
+    private short x3c3; // 3c3  // values: 0, 204
+    private int unknown10; // 3c4  // values: 24, 32, 40, 28, 0
+    private short unknown11; // 3c6  // values: 0
     private ArtResource torch; // 3c7
     private short recommendedSizeX; // 41b
     private short recommendedSizeY; // 41c
@@ -387,83 +387,83 @@ public class Room implements Comparable<Room> {
     }
 
     public ArtResource getGuiIcon() {
-        return guiIcon;
+        return iconGui;
     }
 
     protected void setGuiIcon(ArtResource guiIcon) {
-        this.guiIcon = guiIcon;
+        this.iconGui = guiIcon;
     }
 
     public ArtResource getEditorIcon() {
-        return editorIcon;
+        return iconEditor;
     }
 
     protected void setEditorIcon(ArtResource editorIcon) {
-        this.editorIcon = editorIcon;
+        this.iconEditor = editorIcon;
     }
 
     public ArtResource getCompleteResource() {
-        return completeResource;
+        return resourceComplete;
     }
 
     protected void setCompleteResource(ArtResource completeResource) {
-        this.completeResource = completeResource;
+        this.resourceComplete = completeResource;
     }
 
     public ArtResource getStraightResource() {
-        return straightResource;
+        return resourceStraight;
     }
 
     protected void setStraightResource(ArtResource straightResource) {
-        this.straightResource = straightResource;
+        this.resourceStraight = straightResource;
     }
 
     public ArtResource getInsideCornerResource() {
-        return insideCornerResource;
+        return resourceInsideCorner;
     }
 
     protected void setInsideCornerResource(ArtResource insideCornerResource) {
-        this.insideCornerResource = insideCornerResource;
+        this.resourceInsideCorner = insideCornerResource;
     }
 
     public ArtResource getUnknownResource() {
-        return unknownResource;
+        return resourceUnknown;
     }
 
     protected void setUnknownResource(ArtResource unknownResource) {
-        this.unknownResource = unknownResource;
+        this.resourceUnknown = unknownResource;
     }
 
     public ArtResource getOutsideCornerResource() {
-        return outsideCornerResource;
+        return resourceOutsideCorner;
     }
 
     protected void setOutsideCornerResource(ArtResource outsideCornerResource) {
-        this.outsideCornerResource = outsideCornerResource;
+        this.resourceOutsideCorner = outsideCornerResource;
     }
 
     public ArtResource getWallResource() {
-        return wallResource;
+        return resourceWall;
     }
 
     protected void setWallResource(ArtResource wallResource) {
-        this.wallResource = wallResource;
+        this.resourceWall = wallResource;
     }
 
     public ArtResource getCapResource() {
-        return capResource;
+        return resourceCap;
     }
 
     protected void setCapResource(ArtResource capResource) {
-        this.capResource = capResource;
+        this.resourceCap = capResource;
     }
 
     public ArtResource getCeilingResource() {
-        return ceilingResource;
+        return resourceCeiling;
     }
 
     protected void setCeilingResource(ArtResource ceilingResource) {
-        this.ceilingResource = ceilingResource;
+        this.resourceCeiling = ceilingResource;
     }
 
     public ArtResource getTorch() {

@@ -158,7 +158,7 @@ public final class KwdFile {
         MY_PET_DUNGEON_4(37),
         MY_PET_DUNGEON_5(38),
         MY_PET_DUNGEON_6(39),
-        //UNKNOWN(40),  // FIXME
+        //UNKNOWN(40),  // FIXME crash game if uncomment
         MULTI_PLAYER_2(41),
         MULTI_PLAYER_3(42),
         MULTI_PLAYER_4(43),
@@ -1493,7 +1493,7 @@ public final class KwdFile {
             bytes = new byte[32];
             file.read(bytes);
             creature.setTranslationSoundGategory(ConversionUtils.bytesToString(bytes).trim());
-            creature.setShuffleSpeed(ConversionUtils.readUnsignedInteger(file) / ConversionUtils.FLOAT);
+            creature.setShuffleSpeed(ConversionUtils.readUnsignedInteger(file) / FIXED_POINT_DIVISION);
             creature.setCloneCreatureId((short) file.readUnsignedByte());
             creature.setFirstPersonGammaEffect(ConversionUtils.parseEnum(file.readUnsignedByte(), Creature.GammaEffect.class));
             creature.setFirstPersonWalkCycleScale((short) file.readUnsignedByte());
