@@ -2484,6 +2484,11 @@ public class Creature implements Comparable<Creature> {
         protected void setX08(int x08) {
             this.x08 = x08;
         }
+
+        @Override
+        public String toString() {
+            return "Unk7{" + "x00=" + x00 + ", x04=" + x04 + ", x08=" + x08 + '}';
+        }
     }
 
     public class X1323 {
@@ -2506,5 +2511,10 @@ public class Creature implements Comparable<Creature> {
         protected void setX02(int x02) {
             this.x02 = x02;
         }
+
+        @Override
+        public String toString() {
+            return "X1323{" + "x00=" + x00 + ", x02=" + x02 + '}';
+        }        
     }
 }
