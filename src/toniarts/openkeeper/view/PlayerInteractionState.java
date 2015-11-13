@@ -266,13 +266,12 @@ public abstract class PlayerInteractionState extends AbstractPauseAwareState imp
 
                 // Debug
                 // taggable -> "dig"
-                if (getWorldHandler().isTaggable((int) pos.x, (int) pos.y)) {
+                if (getWorldHandler().isAttackable((int) pos.x, (int) pos.y)) {
                     getWorldHandler().digTile((int) pos.x, (int) pos.y);
-                } // ownable -> "claim"
-                else if (getWorldHandler().isClaimable((int) pos.x, (int) pos.y, player)) {
-                    getWorldHandler().claimTile((int) pos.x, (int) pos.y, player);
+                } 
+                else if (getWorldHandler().isTaggable((int) pos.x, (int) pos.y)) {
+                    getWorldHandler().digTile((int) pos.x, (int) pos.y);
                 }
-                //
             }
 
             // Reset the state
@@ -284,6 +283,19 @@ public abstract class PlayerInteractionState extends AbstractPauseAwareState imp
             startSet = false;
             handler.getSelectionArea().setStart(pos);
             handler.updateSelectionBox();
+        }        
+        else if (evt.getButtonIndex() == MouseInput.BUTTON_MIDDLE && evt.isReleased()) {
+
+            Vector2f pos = handler.getRoundedMousePos();
+            if (interactionState == InteractionState.NONE && app.isDebug()) {
+
+                // Debug
+                // ownable -> "claim"
+                if (getWorldHandler().isClaimable((int) pos.x, (int) pos.y, player)) {
+                    getWorldHandler().claimTile((int) pos.x, (int) pos.y, player);
+                }
+                //
+            }
         }
     }
 

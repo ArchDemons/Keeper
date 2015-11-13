@@ -546,7 +546,8 @@ public final class KwdFile {
         List<Long> wantedItemSize = ITEM_SIZES.get(header.getId());
         if (wantedItemSize != null) {
             if (!wantedItemSize.contains(header.getItemSize())) {
-                logger.log(Level.WARNING, "{0} item size is {1} and it should be something of the following {2}!", new java.lang.Object[]{header.getId(), header.getItemSize(), wantedItemSize});
+                logger.log(Level.WARNING, "{0} item size is {1} and it should be something of the following {2}!", 
+                        new java.lang.Object[]{header.getId(), header.getItemSize(), wantedItemSize});
             }
         }
 
@@ -768,7 +769,8 @@ public final class KwdFile {
             player.setBuildAreaStartY(ConversionUtils.readUnsignedShort(file));
             player.setBuildAreaEndX(ConversionUtils.readUnsignedShort(file));
             player.setBuildAreaEndY(ConversionUtils.readUnsignedShort(file));
-            player.setLikelyhoodToMovingCreaturesToLibraryForResearching(ConversionUtils.parseEnum((short) file.readUnsignedByte(), Player.MoveToResearchPolicy.class));
+            player.setLikelyhoodToMovingCreaturesToLibraryForResearching(ConversionUtils.parseEnum((short) file.readUnsignedByte(), 
+                    Player.MoveToResearchPolicy.class));
             player.setChanceOfExploringToFindSpecials((short) file.readUnsignedByte());
             player.setChanceOfFindingSpecialsWhenExploring((short) file.readUnsignedByte());
             player.setFateOfImprisonedCreatures(ConversionUtils.parseEnum((short) file.readUnsignedByte(), Player.ImprisonedCreatureFatePolicy.class));
@@ -776,9 +778,8 @@ public final class KwdFile {
             player.setPlayerId((short) file.readUnsignedByte());
             player.setStartingCameraX(ConversionUtils.readUnsignedShort(file));
             player.setStartingCameraY(ConversionUtils.readUnsignedShort(file));
-            byte[] bytes = new byte[32];
-            file.read(bytes);
-            player.setName(ConversionUtils.bytesToString(bytes).trim());
+
+            player.setName(ConversionUtils.bytesToString(file, 32).trim());
 
             // Add to the hash by the player ID
             players.put(player.getPlayerId(), player);
@@ -890,11 +891,9 @@ public final class KwdFile {
         ArtResource artResource = new ArtResource();
 
         // Read the data
-        byte[] bytes = new byte[64];
-        file.read(bytes);
-        artResource.setName(ConversionUtils.bytesToString(bytes).trim());
+        artResource.setName(ConversionUtils.bytesToString(file, 64).trim());
         long flags = ConversionUtils.readUnsignedIntegerAsLong(file);
-        bytes = new byte[12];
+        byte[] bytes = new byte[12];
         file.read(bytes); // Depends on the type how these are interpreted?
         short type = (short) file.readUnsignedByte();
         short startAf = (short) file.readUnsignedByte();
@@ -1245,28 +1244,15 @@ public final class KwdFile {
             rawMapInfo.skipBytes(8);
 
             //Property data
-            byte[] bytes = new byte[64 * 2];
-            rawMapInfo.read(bytes);
-            name = ConversionUtils.bytesToStringUtf16(bytes).trim();
+            name = ConversionUtils.bytesToStringUtf16(rawMapInfo, 64).trim();
             if (name != null && !name.isEmpty() && name.toLowerCase().endsWith(".kwd")) {
                 name = name.substring(0, name.length() - 4);
             }
 
-            bytes = new byte[1024 * 2];
-            rawMapInfo.read(bytes);
-            description = ConversionUtils.bytesToStringUtf16(bytes).trim();
-
-            bytes = new byte[64 * 2];
-            rawMapInfo.read(bytes);
-            author = ConversionUtils.bytesToStringUtf16(bytes).trim();
-
-            bytes = new byte[64 * 2];
-            rawMapInfo.read(bytes);
-            email = ConversionUtils.bytesToStringUtf16(bytes).trim();
-
-            bytes = new byte[1024 * 2];
-            rawMapInfo.read(bytes);
-            information = ConversionUtils.bytesToStringUtf16(bytes).trim();
+            description = ConversionUtils.bytesToStringUtf16(rawMapInfo, 1024).trim();
+            author = ConversionUtils.bytesToStringUtf16(rawMapInfo, 64).trim();
+            email = ConversionUtils.bytesToStringUtf16(rawMapInfo, 64).trim();
+            information = ConversionUtils.bytesToStringUtf16(rawMapInfo, 1024).trim();
 
             triggerId = ConversionUtils.readUnsignedShort(rawMapInfo);
             ticksPerSec = ConversionUtils.readUnsignedShort(rawMapInfo);
@@ -1276,18 +1262,14 @@ public final class KwdFile {
             }
             messages = new ArrayList<>(); // I don't know if we need the index, level 19 & 3 has messages, but they are rare
             for (int x = 0; x < 512; x++) {
-                bytes = new byte[20 * 2];
-                rawMapInfo.read(bytes);
-                String message = ConversionUtils.bytesToStringUtf16(bytes).trim();
+                String message = ConversionUtils.bytesToStringUtf16(rawMapInfo, 20).trim();
                 if (!message.isEmpty()) {
                     messages.add(message);
                 }
             }
             int flag = ConversionUtils.readUnsignedShort(rawMapInfo);
             lvlFlags = ConversionUtils.parseFlagValue(flag, LevFlag.class);
-            bytes = new byte[32];
-            rawMapInfo.read(bytes);
-            speechStr = ConversionUtils.bytesToString(bytes).trim();
+            speechStr = ConversionUtils.bytesToString(rawMapInfo, 32).trim();
             talismanPieces = (short) rawMapInfo.readUnsignedByte();
             rewardPrev = new ArrayList<>(4);
             for (int x = 0; x < 4; x++) {
@@ -1333,10 +1315,7 @@ public final class KwdFile {
                 }
             }
             //
-
-            bytes = new byte[32];
-            rawMapInfo.read(bytes);
-            terrainPath = ConversionUtils.bytesToString(bytes).trim();
+            terrainPath = ConversionUtils.bytesToString(rawMapInfo, 32).trim();
             oneShotHornyLev = (short) rawMapInfo.readUnsignedByte();
             playerCount = (short) rawMapInfo.readUnsignedByte();
             x06405 = (short) rawMapInfo.readUnsignedByte();
@@ -1347,9 +1326,7 @@ public final class KwdFile {
             speechPostlvlLost = ConversionUtils.readUnsignedShort(rawMapInfo);
             speechPostlvlNews = ConversionUtils.readUnsignedShort(rawMapInfo);
             speechPrelvlGenr = ConversionUtils.readUnsignedShort(rawMapInfo);
-            bytes = new byte[32 * 2];
-            rawMapInfo.read(bytes);
-            heroName = ConversionUtils.bytesToStringUtf16(bytes).trim();
+            heroName = ConversionUtils.bytesToStringUtf16(rawMapInfo, 32).trim();
 
             // Paths and the unknown array
             rawMapInfo.skipBytes(8);
@@ -1358,9 +1335,7 @@ public final class KwdFile {
                 FilePath filePath = new FilePath();
                 filePath.setId(ConversionUtils.parseEnum(ConversionUtils.readUnsignedInteger(rawMapInfo), MapDataTypeEnum.class));
                 filePath.setUnknown2(ConversionUtils.readInteger(rawMapInfo));
-                bytes = new byte[64];
-                rawMapInfo.read(bytes);
-                String path = ConversionUtils.bytesToString(bytes).trim();
+                String path = ConversionUtils.bytesToString(rawMapInfo, 64).trim();
 
                 // Tweak the paths
 
@@ -1490,10 +1465,9 @@ public final class KwdFile {
             creature.setAngerStringIdLonely(ConversionUtils.readUnsignedShort(file));
             creature.setAngerStringIdHatred(ConversionUtils.readUnsignedShort(file));
             creature.setAngerStringIdTorture(ConversionUtils.readUnsignedShort(file));
-            bytes = new byte[32];
-            file.read(bytes);
-            creature.setTranslationSoundGategory(ConversionUtils.bytesToString(bytes).trim());
-            creature.setShuffleSpeed(ConversionUtils.readUnsignedInteger(file) / FIXED_POINT_DIVISION);
+
+            creature.setTranslationSoundGategory(ConversionUtils.bytesToString(file, 32).trim());
+            creature.setShuffleSpeed(ConversionUtils.readUnsignedInteger(file) / ConversionUtils.FLOAT);
             creature.setCloneCreatureId((short) file.readUnsignedByte());
             creature.setFirstPersonGammaEffect(ConversionUtils.parseEnum(file.readUnsignedByte(), Creature.GammaEffect.class));
             creature.setFirstPersonWalkCycleScale((short) file.readUnsignedByte());
@@ -2345,7 +2319,7 @@ public final class KwdFile {
                 }
             }
 
-            //System.out.println(thingTag[0] + " type");
+            System.out.println(thingTag[0] + " type");
 
             // Add to the list
             things.add(thing);

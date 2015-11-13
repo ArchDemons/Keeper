@@ -215,13 +215,13 @@ public class ConversionUtils {
      * Reads bytes from a file and converts them to a string
      *
      * @param file the file
-     * @param size the number of bytes to read
+     * @param length string length
      * @see #bytesToString(byte[])
      * @return fresh String
      * @throws IOException the reading may fail
      */
-    public static String bytesToString(RandomAccessFile file, int size) throws IOException {
-        byte[] bytes = new byte[size];
+    public static String bytesToString(RandomAccessFile file, int length) throws IOException {
+        byte[] bytes = new byte[length];
         file.read(bytes);
         return bytesToString(bytes);
     }
@@ -256,13 +256,13 @@ public class ConversionUtils {
      * Reads strings of varying length (UTF16 NULL terminated) from the file
      *
      * @param file the file to read from
-     * @param size number of Strings to read
+     * @param length max length of string
      * @return string read from the file
      * @throws IOException
      */
-    public static String readVaryingLengthStringUtf16(RandomAccessFile file, int size) throws IOException {
+    public static String readVaryingLengthStringUtf16(RandomAccessFile file, int length) throws IOException {
 
-        byte[] bytes = new byte[size];
+        byte[] bytes = new byte[length * 2];
         file.read(bytes);
 
         List<Byte> result = new ArrayList<>();

@@ -83,6 +83,14 @@ public abstract class WorldHandler {
     public Node getWorld() {
         return worldNode;
     }
+    
+    public KwdFile getLevelData() {
+        return this.kwdFile;
+    }
+    
+    public MapLoader getMapLoader() {
+        return this.mapLoader;
+    }
 
     /**
      * Set some tiles selected/undelected
@@ -129,7 +137,20 @@ public abstract class WorldHandler {
         Terrain terrain = kwdFile.getTerrain(tile.getTerrainId());
         return terrain.getFlags().contains(Terrain.TerrainFlag.TAGGABLE);
     }
-
+    
+    
+    /**
+     * Determine if a tile at x & y is attackable or not
+     *
+     * @param x x coordinate
+     * @param y y coordinate
+     * @return is the tile attackable
+     */
+    public boolean isAttackable(int x, int y) {
+        TileData tile = mapLoader.getTile(x, y);
+        Terrain terrain = kwdFile.getTerrain(tile.getTerrainId());
+        return terrain.getFlags().contains(Terrain.TerrainFlag.ATTACKABLE);
+    }
     /**
      * Determine if a tile at x & y is buildable by the player
      *
@@ -175,15 +196,17 @@ public abstract class WorldHandler {
     public boolean isClaimable(int x, int y, Player player) {
         TileData tile = mapLoader.getTile(x, y);
         Terrain terrain = kwdFile.getTerrain(tile.getTerrainId());
-
+        if (terrain.getTerrainId() != terrain.getMaxHealthTypeTerrainId() && !terrain.getFlags().contains(Terrain.TerrainFlag.OWNABLE)) {
+            return true;
+        }
         // Claimed & not owned by us
-        if (tile.getPlayerId() != player.getPlayerId() && terrain.getFlags().contains(Terrain.TerrainFlag.OWNABLE)) {
-            return true;
-        }
+        //if (tile.getPlayerId() != player.getPlayerId() && terrain.getFlags().contains(Terrain.TerrainFlag.OWNABLE)) {
+        //    return true;
+        //}
         // i.e. Dirt path, not water nor lava, not taggable
-        if (!terrain.getFlags().contains(Terrain.TerrainFlag.LAVA) && !terrain.getFlags().contains(Terrain.TerrainFlag.WATER) && !terrain.getFlags().contains(Terrain.TerrainFlag.SOLID)) {
-            return true;
-        }
+        //if (!terrain.getFlags().contains(Terrain.TerrainFlag.LAVA) && !terrain.getFlags().contains(Terrain.TerrainFlag.WATER) && !terrain.getFlags().contains(Terrain.TerrainFlag.SOLID)) {
+        //    return true;
+        //}
 
         return false;
     }
@@ -195,7 +218,7 @@ public abstract class WorldHandler {
      * @param y y coordinate
      */
     public void digTile(int x, int y) {
-        if (isTaggable(x, y)) {
+        if (isAttackable(x, y) || isTaggable(x, y)) {
             TileData tile = mapLoader.getTile(x, y);
             Terrain terrain = kwdFile.getTerrain(tile.getTerrainId());
             tile.setTerrainId(terrain.getDestroyedTypeTerrainId());
