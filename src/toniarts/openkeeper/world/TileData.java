@@ -27,12 +27,14 @@ public final class TileData extends Tile {
 
     private boolean selected = false;
     private Integer randomTextureIndex;
+    private int health;
 
     protected TileData(Tile tile) {
         this.setFlag(tile.getFlag());
         this.setPlayerId(tile.getPlayerId());
         this.setTerrainId(tile.getTerrainId());
         this.setUnknown(tile.getUnknown());
+        this.health = 0;
     }
 
     public boolean isSelected() {
@@ -59,5 +61,13 @@ public final class TileData extends Tile {
 
     protected void setRandomTextureIndex(Integer randomTextureIndex) {
         this.randomTextureIndex = randomTextureIndex;
+    }
+    
+    protected void setHealth(int health) {
+        this.health = health;
+    }
+    
+    public int getHealth() {
+        return health;
     }
 }
