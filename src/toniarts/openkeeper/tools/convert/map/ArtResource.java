@@ -31,7 +31,21 @@ import java.util.EnumSet;
 public class ArtResource {
 
     public enum ArtResourceFlag implements IFlagEnum {
-
+        
+        /* in terrain Water, Lava, in object Gold, Gold Bag, Gold Pile 1, Crate Alarm,
+           Torture Wheel, Chicken, Call To Arms, Rat, Dungeon Heart, Door Key [Wood], Goblin Creature Bed, Crate Boulder, Crate Fear, 
+           Crate FireBurst, Crate Freeze, Crate Gas, Crate Lighting, Crate Sentry, Crate Spike, Crate Trigger, Lavatory, Crate Steel Door,
+           Crate Brased Door, Crate Magic Door, Crate Barricade, Crate Secret Door, Barrel, Boulder, Graveyard Crypt, Arches, Big Steps,
+           3d Front End Banner 1, Crate Guard Post, Casino Pay Out Ajuster, Dungeon Heart Plug, Door Key [Steel], Door Key [Braced],
+           Door Key [Magic], Door Key [Secret], Prison Door, Temple Candlestik, Guard Post Table, Hero Armoury Trestle, Prison Door Bar, 
+           Special [Increase Level - Reveal Map - Make Safe - Destroy Walls - Increase Gold - Mana Boost - Stun Imps - Receive Imps -
+           Make Happy - Kill Creatures - Heal All - Locate Hidden Lands - Transfer Creature], MPD level Indicator, 
+           3d front end gem holder - chain - banner 2 -  banner 3 - banner 4, Door Key - Hero Portcullis, 
+           Crate [ Jack-In-The-Box ], Jack-In-The-Box, Crypt Dancer, Crypt Special Dancer, Maiden Creature Bed
+           in room Treasury, Treasury(Torch), Lair(Torch), Portal (Icon), Hero Gate [Final] (CompleteResource), Hero Portal (Gui Icon)
+           in creature Imp (anim Walk ....)
+        */
+        // CAN_USE_ALTERNATIVE_ANIMATION(0x0001), // FIXME 
         PLAYER_COLOURED(0x0002),
         ANIMATING_TEXTURE(0x0004),
         HAS_START_ANIMATION(0x0008),
@@ -41,6 +55,10 @@ public class ArtResource {
         DOESNT_LOOP(0x0080),
         FLAT(0x0100),
         DOESNT_USE_PROGRESSIVE_MESH(0x0200),
+        /* in creature Imp (animIdle1) */
+        // UNKNOWN_1(0x0400),  // FIXME
+        /* in creature Imp (animMelee1) */
+        // UNKNOWN_2(0x8000),  // FIXME
         USE_ANIMATING_TEXTURE_FOR_SELECTION(0x10000),
         PRELOAD(0x20000),
         BLOOD(0x40000);
@@ -66,9 +84,7 @@ public class ArtResource {
         MESH(5),
         ANIMATING_MESH(6),
         PROCEDURAL_MESH(7),
-        MESH_COLLECTION(8),
-        UNKNOWN(12);  // FIXME
-
+        MESH_COLLECTION(8);
         private Type(int id) {
             this.id = id;
         }

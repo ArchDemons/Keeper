@@ -17,6 +17,7 @@
 package toniarts.openkeeper.tools.convert.map;
 
 import java.util.EnumSet;
+import java.util.HashMap;
 import javax.vecmath.Vector3f;
 import toniarts.openkeeper.tools.convert.IFlagEnum;
 import toniarts.openkeeper.tools.convert.IValueEnum;
@@ -27,6 +28,33 @@ import toniarts.openkeeper.tools.convert.IValueEnum;
  * @author Toni Helenius <helenius.toni@gmail.com>
  */
 public class Creature implements Comparable<Creature> {
+    
+    public enum ResourceEnum {
+        animWalk, animRun, animDraggedPose, animRecoilHff, animMelee1, animMagic, animDie, animHappy, animAngry, animStunnedPose, 
+        animSwing, animSleep, animEat, animResearch, 
+        unknown2, //
+        animDejectedPose, animTorture, 
+        unknown3, //
+        animDrink, animIdle1, 
+        animRecoilHfb, 
+        unknown4, // Bile_Demon-Building
+        animPray, animFallback, animElec, animElectrocute, animGetUp, animDance, animDrunk, animEntrance, 
+        animIdle2, 
+        unknown5, // imp-jump(iw), Mis_whip, Vampire-IntoBat, ske-Attention, Dan-aggressive
+        unknown6, // VAM-EatCorpse
+        animDrunk2, 
+        unknown7, // imp-jump(iw), VAM-EatCorpse, Knight-Happy, Rogue_Loot, REA3_Roar, THF_Loot
+        unknown8, //
+        icon1, icon2, portrait, 
+        drunkIdle, // PR1-DrunkIdle, BIL-Drunkidle, Mistress-Drunkidle
+        firstPersonMelee, animMelee2,
+        unknown9, // Imp-Idle3,
+        unknown10, // Imp-Idle4
+        unknown11, // Imp-Idle3,
+        unknown12, // Imp-Idle4
+        unknown13, // IMP-Dig2
+        animWalkback, animPoseFrame, animWalk2, animDiePose, unique; 
+    }
 
     /**
      * Creature flags
@@ -39,9 +67,13 @@ public class Creature implements Comparable<Creature> {
         ALWAYS_FLEE(8),
         CAN_WALK_ON_WATER(16),
         CAN_WALK_ON_LAVA(32),
+        // UNKNOWN_1(64), // FIXME in Troll
         IS_EVIL(128), // Obviously otherwise it is good
+        // UNKNOWN_2(256), // FIXME
         IS_IMMUNE_TO_TURNCOAT(512),
         AVAILABLE_VIA_PORTAL(1024),
+        // UNKNOWN_3(2048), // FIXME in creature Imp
+        // UNKNOWN_4(4096), // FIXME
         CAN_FLY(8192),
         IS_HORNY(16384),
         GENERATE_DEAD_BODY(32768),
@@ -58,6 +90,7 @@ public class Creature implements Comparable<Creature> {
         REVEALS_ADJACENT_TRAPS(67108864),
         IS_UNIQUE(134217728),
         CAMERA_ROLLS_WHEN_TURNING(268435456), // 1st person movement flag
+        // UNKNOWN_5(536870912),  // FIXME  in creature Imp
         MPD_RANDOM_INVADER(1073741824), // My Pet Dungeon?
         IS_MALE(2147483648l);  // Obviously otherwise it is female
         private final long flagValue;
@@ -110,8 +143,11 @@ public class Creature implements Comparable<Creature> {
         GENERATION(12),
         PHYSICAL_TRAP(13),
         NON_LETHAL_TRAP(14),
-        MELEE_SCYTHE(15);
-
+        MELEE_SCYTHE(15),
+        // UNKNOWN_16(16), // FIXME in Salamander
+        // UNKNOWN_25(25); // FIXME in Elven Archer
+        ;
+        
         private AttackType(int id) {
             this.id = id;
         }
@@ -438,7 +474,7 @@ public class Creature implements Comparable<Creature> {
 //        ArtResource reff77; /* f77 */
 //        uint16_t unkfcb; /* fcb */
 //        uint32_t unk4; /* fcd */
-//        ArtResource ref3; /* fd1 */
+//        ArtResource drunkIdle; /* fd1 */
 //        uint8_t unk5[2]; /* 1025 */
 //        ArtResource ref4; /* 1027 */
 //        uint32_t unk6; /* 107b */
@@ -463,45 +499,10 @@ public class Creature implements Comparable<Creature> {
 //        uint32_t unk1545;
 //        };
     private String name; // 0
-    private ArtResource unknown1Resource;
-    private ArtResource animWalkResource;
-    private ArtResource animRunResource;
-    private ArtResource animDraggedPoseResource;
-    private ArtResource animRecoilHffResource;
-    private ArtResource animMelee1Resource;
-    private ArtResource animMagicResource;
-    private ArtResource animDieResource;
-    private ArtResource animHappyResource;
-    private ArtResource animAngryResource;
-    private ArtResource animStunnedPoseResource;
-    private ArtResource animSwingResource;
-    private ArtResource animSleepResource;
-    private ArtResource animEatResource;
-    private ArtResource animResearchResource;
-    private ArtResource unknown2Resource;
-    private ArtResource animDejectedPoseResource;
-    private ArtResource animTortureResource;
-    private ArtResource unknown3Resource;
-    private ArtResource animDrinkResource;
-    private ArtResource animIdle1Resource;
-    private ArtResource animRecoilHfbResource;
-    private ArtResource unknown4Resource;
-    private ArtResource animPrayResource;
-    private ArtResource animFallbackResource;
-    private ArtResource animElecResource;
-    private ArtResource animElectrocuteResource;
-    private ArtResource animGetUpResource;
-    private ArtResource animDanceResource;
-    private ArtResource animDrunkResource;
-    private ArtResource animEntranceResource;
-    private ArtResource animIdle2Resource;
-    private ArtResource unknown5Resource;
-    private ArtResource unknown6Resource;
-    private ArtResource animDrunk2Resource;
-    private ArtResource unknown7Resource;
-    private ArtResource unknown8Resource;
-    private ArtResource icon1Resource;
-    private ArtResource icon2Resource;
+    //private ArtResource unknown1Resource;
+    private byte[] unknown1Resource = new byte[84];
+    private HashMap<ResourceEnum, ArtResource> resources = new HashMap<>(52);
+
     private int unkcec; // cec
     private int unkcee; // cee
     private int unkcf2; // cf2
@@ -527,7 +528,7 @@ public class Creature implements Comparable<Creature> {
     private short firstPersonWalkCycleScale; // Movement
     private short introCameraPathIndex;
     private short unk2e2;
-    private ArtResource portraitResource; // d40
+
     private Light light; // d94
     private Attraction attractions[];
     private float firstPersonWaddleScale; // dbc Movement
@@ -621,30 +622,23 @@ public class Creature implements Comparable<Creature> {
     private ArtResource firstPersonFilterResource; // f77
     private int unkfcb; // fcb
     private int unk4; // fcd
-    private ArtResource ref3; // fd1
+
     private Swipe special1Swipe; // 1025
     private Swipe special2Swipe;
-    private ArtResource firstPersonMeleeResource; // 1027
+
     private int unk6; // 107b
     private short tortureHpChange; // 107f
     private short tortureMoodChange; // 1081
-    private ArtResource animMelee2Resource; // 1083
-    private ArtResource unknown9Resource;
-    private ArtResource unknown10Resource;
-    private ArtResource unknown11Resource;
-    private ArtResource unknown12Resource;
-    private ArtResource unknown13Resource;
+
     private Unk7 unk7[]; // 127b
-    private ArtResource animWalkbackResource; // 12cf
+
     private X1323 x1323[];
-    private ArtResource animPoseFrameResource; // 13e3
-    private ArtResource animWalk2Resource;
-    private ArtResource animDiePoseResource;
+
     private int uniqueNameTextId;
     private int x14e1[]; // 14e1
     private int firstPersonSpecialAbility1Count; // 14e9, available uses or something, not really sure
     private int firstPersonSpecialAbility2Count;
-    private ArtResource uniqueResource; // 14f1
+
     private int unk1545;
     // When the file is embedded in the globals, there is some extra stuff
     private short unknownExtraBytes[]; // 80
@@ -659,316 +653,29 @@ public class Creature implements Comparable<Creature> {
         this.name = name;
     }
 
-    public ArtResource getUnknown1Resource() {
+    public byte[] getUnknown1Resource() {
         return unknown1Resource;
     }
 
-    protected void setUnknown1Resource(ArtResource unknown1Resource) {
+    protected void setUnknown1Resource(byte[] unknown1Resource) {
         this.unknown1Resource = unknown1Resource;
     }
 
-    public ArtResource getAnimWalkResource() {
-        return animWalkResource;
-    }
-
-    protected void setAnimWalkResource(ArtResource animWalkResource) {
-        this.animWalkResource = animWalkResource;
-    }
-
-    public ArtResource getAnimRunResource() {
-        return animRunResource;
-    }
-
-    protected void setAnimRunResource(ArtResource animRunResource) {
-        this.animRunResource = animRunResource;
-    }
-
-    public ArtResource getAnimDraggedPoseResource() {
-        return animDraggedPoseResource;
-    }
-
-    protected void setAnimDraggedPoseResource(ArtResource animDraggedPoseResource) {
-        this.animDraggedPoseResource = animDraggedPoseResource;
-    }
-
-    public ArtResource getAnimRecoilHffResource() {
-        return animRecoilHffResource;
-    }
-
-    protected void setAnimRecoilHffResource(ArtResource animRecoilHffResource) {
-        this.animRecoilHffResource = animRecoilHffResource;
-    }
-
-    public ArtResource getAnimMelee1Resource() {
-        return animMelee1Resource;
-    }
-
-    protected void setAnimMelee1Resource(ArtResource animMelee1Resource) {
-        this.animMelee1Resource = animMelee1Resource;
-    }
-
-    public ArtResource getAnimMagicResource() {
-        return animMagicResource;
-    }
-
-    protected void setAnimMagicResource(ArtResource animMagicResource) {
-        this.animMagicResource = animMagicResource;
-    }
-
-    public ArtResource getAnimDieResource() {
-        return animDieResource;
-    }
-
-    protected void setAnimDieResource(ArtResource animDieResource) {
-        this.animDieResource = animDieResource;
-    }
-
-    public ArtResource getAnimHappyResource() {
-        return animHappyResource;
-    }
-
-    protected void setAnimHappyResource(ArtResource animHappyResource) {
-        this.animHappyResource = animHappyResource;
-    }
-
-    public ArtResource getAnimAngryResource() {
-        return animAngryResource;
-    }
-
-    protected void setAnimAngryResource(ArtResource animAngryResource) {
-        this.animAngryResource = animAngryResource;
-    }
-
-    public ArtResource getAnimStunnedPoseResource() {
-        return animStunnedPoseResource;
-    }
-
-    protected void setAnimStunnedPoseResource(ArtResource animStunnedPoseResource) {
-        this.animStunnedPoseResource = animStunnedPoseResource;
-    }
-
-    public ArtResource getAnimSwingResource() {
-        return animSwingResource;
-    }
-
-    protected void setAnimSwingResource(ArtResource animSwingResource) {
-        this.animSwingResource = animSwingResource;
-    }
-
-    public ArtResource getAnimSleepResource() {
-        return animSleepResource;
-    }
-
-    protected void setAnimSleepResource(ArtResource animSleepResource) {
-        this.animSleepResource = animSleepResource;
-    }
-
-    public ArtResource getAnimEatResource() {
-        return animEatResource;
-    }
-
-    protected void setAnimEatResource(ArtResource animEatResource) {
-        this.animEatResource = animEatResource;
-    }
-
-    public ArtResource getAnimResearchResource() {
-        return animResearchResource;
-    }
-
-    protected void setAnimResearchResource(ArtResource animResearchResource) {
-        this.animResearchResource = animResearchResource;
-    }
-
-    public ArtResource getUnknown2Resource() {
-        return unknown2Resource;
-    }
-
-    protected void setUnknown2Resource(ArtResource unknown2Resource) {
-        this.unknown2Resource = unknown2Resource;
-    }
-
-    public ArtResource getAnimDejectedPoseResource() {
-        return animDejectedPoseResource;
-    }
-
-    protected void setAnimDejectedPoseResource(ArtResource animDejectedPoseResource) {
-        this.animDejectedPoseResource = animDejectedPoseResource;
-    }
-
-    public ArtResource getAnimTortureResource() {
-        return animTortureResource;
-    }
-
-    protected void setAnimTortureResource(ArtResource animTortureResource) {
-        this.animTortureResource = animTortureResource;
-    }
-
-    public ArtResource getUnknown3Resource() {
-        return unknown3Resource;
-    }
-
-    protected void setUnknown3Resource(ArtResource unknown3Resource) {
-        this.unknown3Resource = unknown3Resource;
-    }
-
-    public ArtResource getAnimDrinkResource() {
-        return animDrinkResource;
-    }
-
-    protected void setAnimDrinkResource(ArtResource animDrinkResource) {
-        this.animDrinkResource = animDrinkResource;
-    }
-
-    public ArtResource getAnimIdle1Resource() {
-        return animIdle1Resource;
-    }
-
-    protected void setAnimIdle1Resource(ArtResource animIdle1Resource) {
-        this.animIdle1Resource = animIdle1Resource;
-    }
-
-    public ArtResource getAnimRecoilHfbResource() {
-        return animRecoilHfbResource;
-    }
-
-    protected void setAnimRecoilHfbResource(ArtResource animRecoilHfbResource) {
-        this.animRecoilHfbResource = animRecoilHfbResource;
-    }
-
-    public ArtResource getUnknown4Resource() {
-        return unknown4Resource;
-    }
-
-    protected void setUnknown4Resource(ArtResource unknown4Resource) {
-        this.unknown4Resource = unknown4Resource;
-    }
-
-    public ArtResource getAnimPrayResource() {
-        return animPrayResource;
-    }
-
-    protected void setAnimPrayResource(ArtResource animPrayResource) {
-        this.animPrayResource = animPrayResource;
-    }
-
-    public ArtResource getAnimFallbackResource() {
-        return animFallbackResource;
-    }
-
-    protected void setAnimFallbackResource(ArtResource animFallbackResource) {
-        this.animFallbackResource = animFallbackResource;
-    }
-
-    public ArtResource getAnimElecResource() {
-        return animElecResource;
-    }
-
-    protected void setAnimElecResource(ArtResource animElecResource) {
-        this.animElecResource = animElecResource;
-    }
-
-    public ArtResource getAnimElectrocuteResource() {
-        return animElectrocuteResource;
-    }
-
-    protected void setAnimElectrocuteResource(ArtResource animElectrocuteResource) {
-        this.animElectrocuteResource = animElectrocuteResource;
-    }
-
-    public ArtResource getAnimGetUpResource() {
-        return animGetUpResource;
-    }
-
-    protected void setAnimGetUpResource(ArtResource animGetUpResource) {
-        this.animGetUpResource = animGetUpResource;
-    }
-
-    public ArtResource getAnimDanceResource() {
-        return animDanceResource;
-    }
-
-    protected void setAnimDanceResource(ArtResource animDanceResource) {
-        this.animDanceResource = animDanceResource;
-    }
-
-    public ArtResource getAnimDrunkResource() {
-        return animDrunkResource;
-    }
-
-    protected void setAnimDrunkResource(ArtResource animDrunkResource) {
-        this.animDrunkResource = animDrunkResource;
-    }
-
-    public ArtResource getAnimEntranceResource() {
-        return animEntranceResource;
-    }
-
-    protected void setAnimEntranceResource(ArtResource animEntranceResource) {
-        this.animEntranceResource = animEntranceResource;
-    }
-
-    public ArtResource getAnimIdle2Resource() {
-        return animIdle2Resource;
-    }
-
-    protected void setAnimIdle2Resource(ArtResource animIdle2Resource) {
-        this.animIdle2Resource = animIdle2Resource;
-    }
-
-    public ArtResource getUnknown5Resource() {
-        return unknown5Resource;
-    }
-
-    protected void setUnknown5Resource(ArtResource unknown5Resource) {
-        this.unknown5Resource = unknown5Resource;
-    }
-
-    public ArtResource getUnknown6Resource() {
-        return unknown6Resource;
-    }
-
-    protected void setUnknown6Resource(ArtResource unknown6Resource) {
-        this.unknown6Resource = unknown6Resource;
-    }
-
-    public ArtResource getAnimDrunk2Resource() {
-        return animDrunk2Resource;
-    }
-
-    protected void setAnimDrunk2Resource(ArtResource animDrunk2Resource) {
-        this.animDrunk2Resource = animDrunk2Resource;
-    }
-
-    public ArtResource getUnknown7Resource() {
-        return unknown7Resource;
-    }
-
-    protected void setUnknown7Resource(ArtResource unknown7Resource) {
-        this.unknown7Resource = unknown7Resource;
-    }
-
-    public ArtResource getUnknown8Resource() {
-        return unknown8Resource;
-    }
-
-    protected void setUnknown8Resource(ArtResource unknown8Resource) {
-        this.unknown8Resource = unknown8Resource;
-    }
-
-    public ArtResource getIcon1Resource() {
-        return icon1Resource;
-    }
-
-    protected void setIcon1Resource(ArtResource icon1Resource) {
-        this.icon1Resource = icon1Resource;
-    }
-
-    public ArtResource getIcon2Resource() {
-        return icon2Resource;
-    }
-
-    protected void setIcon2Resource(ArtResource icon2Resource) {
-        this.icon2Resource = icon2Resource;
+    public ArtResource getResource(ResourceEnum type) {
+        if (!resources.containsKey(type)) {
+            return null;
+        }
+        return resources.get(type);
+    }
+
+    protected void setResource(ResourceEnum type, ArtResource resource) {
+        if (type == ResourceEnum.unknown8 && resource != null) {
+            System.out.print("");
+        }
+        if (resource == null) {
+            return;
+        }
+        this.resources.put(type, resource);
     }
 
     public int getUnkcec() {
@@ -1169,14 +876,6 @@ public class Creature implements Comparable<Creature> {
 
     protected void setUnk2e2(short unk2e2) {
         this.unk2e2 = unk2e2;
-    }
-
-    public ArtResource getPortraitResource() {
-        return portraitResource;
-    }
-
-    protected void setPortraitResource(ArtResource portraitResource) {
-        this.portraitResource = portraitResource;
     }
 
     public Light getLight() {
@@ -1923,14 +1622,6 @@ public class Creature implements Comparable<Creature> {
         this.unk4 = unk4;
     }
 
-    public ArtResource getRef3() {
-        return ref3;
-    }
-
-    protected void setRef3(ArtResource ref3) {
-        this.ref3 = ref3;
-    }
-
     public Swipe getSpecial1Swipe() {
         return special1Swipe;
     }
@@ -1945,14 +1636,6 @@ public class Creature implements Comparable<Creature> {
 
     protected void setSpecial2Swipe(Swipe special2Swipe) {
         this.special2Swipe = special2Swipe;
-    }
-
-    public ArtResource getFirstPersonMeleeResource() {
-        return firstPersonMeleeResource;
-    }
-
-    protected void setFirstPersonMeleeResource(ArtResource firstPersonMeleeResource) {
-        this.firstPersonMeleeResource = firstPersonMeleeResource;
     }
 
     public int getUnk6() {
@@ -1979,54 +1662,6 @@ public class Creature implements Comparable<Creature> {
         this.tortureMoodChange = tortureMoodChange;
     }
 
-    public ArtResource getAnimMelee2Resource() {
-        return animMelee2Resource;
-    }
-
-    protected void setAnimMelee2Resource(ArtResource animMelee2Resource) {
-        this.animMelee2Resource = animMelee2Resource;
-    }
-
-    public ArtResource getUnknown9Resource() {
-        return unknown9Resource;
-    }
-
-    protected void setUnknown9Resource(ArtResource unknown9Resource) {
-        this.unknown9Resource = unknown9Resource;
-    }
-
-    public ArtResource getUnknown10Resource() {
-        return unknown10Resource;
-    }
-
-    protected void setUnknown10Resource(ArtResource unknown10Resource) {
-        this.unknown10Resource = unknown10Resource;
-    }
-
-    public ArtResource getUnknown11Resource() {
-        return unknown11Resource;
-    }
-
-    protected void setUnknown11Resource(ArtResource unknown11Resource) {
-        this.unknown11Resource = unknown11Resource;
-    }
-
-    public ArtResource getUnknown12Resource() {
-        return unknown12Resource;
-    }
-
-    protected void setUnknown12Resource(ArtResource unknown12Resource) {
-        this.unknown12Resource = unknown12Resource;
-    }
-
-    public ArtResource getUnknown13Resource() {
-        return unknown13Resource;
-    }
-
-    protected void setUnknown13Resource(ArtResource unknown13Resource) {
-        this.unknown13Resource = unknown13Resource;
-    }
-
     public Unk7[] getUnk7() {
         return unk7;
     }
@@ -2035,44 +1670,12 @@ public class Creature implements Comparable<Creature> {
         this.unk7 = unk7;
     }
 
-    public ArtResource getAnimWalkbackResource() {
-        return animWalkbackResource;
-    }
-
-    protected void setAnimWalkbackResource(ArtResource animWalkbackResource) {
-        this.animWalkbackResource = animWalkbackResource;
-    }
-
     public X1323[] getX1323() {
         return x1323;
     }
 
     protected void setX1323(X1323[] x1323) {
         this.x1323 = x1323;
-    }
-
-    public ArtResource getAnimPoseFrameResource() {
-        return animPoseFrameResource;
-    }
-
-    protected void setAnimPoseFrameResource(ArtResource animPoseFrameResource) {
-        this.animPoseFrameResource = animPoseFrameResource;
-    }
-
-    public ArtResource getAnimWalk2Resource() {
-        return animWalk2Resource;
-    }
-
-    protected void setAnimWalk2Resource(ArtResource animWalk2Resource) {
-        this.animWalk2Resource = animWalk2Resource;
-    }
-
-    public ArtResource getAnimDiePoseResource() {
-        return animDiePoseResource;
-    }
-
-    protected void setAnimDiePoseResource(ArtResource animDiePoseResource) {
-        this.animDiePoseResource = animDiePoseResource;
     }
 
     public int getUniqueNameTextId() {
@@ -2105,14 +1708,6 @@ public class Creature implements Comparable<Creature> {
 
     protected void setFirstPersonSpecialAbility2Count(int firstPersonSpecialAbility2Count) {
         this.firstPersonSpecialAbility2Count = firstPersonSpecialAbility2Count;
-    }
-
-    public ArtResource getUniqueResource() {
-        return uniqueResource;
-    }
-
-    protected void setUniqueResource(ArtResource uniqueResource) {
-        this.uniqueResource = uniqueResource;
     }
 
     public int getUnk1545() {

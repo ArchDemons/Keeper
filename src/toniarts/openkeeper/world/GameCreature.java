@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import toniarts.openkeeper.tools.convert.AssetsConverter;
+import toniarts.openkeeper.tools.convert.map.Creature.ResourceEnum;
 import toniarts.openkeeper.tools.convert.map.KwdFile;
 import toniarts.openkeeper.tools.convert.map.Thing;
 
@@ -97,7 +98,7 @@ public class GameCreature extends Node {
     private String getModelFileName() {
         try {
             artResoureceId = 0;
-            return kwdFile.getCreature(info.getCreatureId()).getAnimWalkResource().getName();
+            return kwdFile.getCreature(info.getCreatureId()).getResource(ResourceEnum.animWalk).getName();
         } catch (Exception e) {
             throw new RuntimeException("model not found");
         }

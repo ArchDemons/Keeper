@@ -39,6 +39,13 @@ public class Terrain implements Comparable<Terrain> {
         IMPENETRABLE(0x00000002),
         OWNABLE(0x00000004),
         TAGGABLE(0x00000008),
+        /*
+           in Treasury, Lair, Portal, Hatchery, Dungeon Heart, Library, Training Room, Wooden Bridge,
+           Guard Room, Work Shop, Prison, Torture Chamber, Temple, Graveyard, Casino, Combat Pit, Stone Bridge, Hero Gate [Final], 
+           Hero Gate [Tile] [not used], Hero Gate 2x2, Hero Gate [fron end], Hero Stone Bridge, Hero Gate 3x1, Mecenary Gate [not used],
+           Hero Portal, Crypt
+         */
+        // ROOM(0x00000010), // is room terrain?
         ATTACKABLE(0x00000020),
         TORCH(0x00000040), // has torch?
         WATER(0x00000080),

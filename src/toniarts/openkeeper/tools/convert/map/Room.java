@@ -47,6 +47,8 @@ public class Room implements Comparable<Room> {
         BUILDABLE(0x0080),
         SPECIAL_WALLS(0x0100), // Placement
         ATTACKABLE(0x0200),
+        // UNKNOWN(0x0400), // FIXME: Hero Gate [ Final ], Hero Gate [ Tile ] [ not used ]
+        // UNKNOWN(0x0400), // FIXME: Hero Gate [ Final ], Hero Gate [ Tile ] [ not used ]
         HAS_FLAME(0x1000),
         IS_GOOD(0x2000);
         private final long flagValue;

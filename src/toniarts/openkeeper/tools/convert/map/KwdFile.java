@@ -92,7 +92,7 @@ public final class KwdFile {
 
     public enum LevFlag implements IFlagEnum {
 
-        //UNKNOWN(0x0004), // unknown; always on in maps
+        // UNKNOWN(0x0004), // FIXME: unknown; always on in maps
         ALWAYS_IMPRISON_ENEMIES(0x0008), // Always imprison enemies
         ONE_SHOT_HORNY(0x0010), // Set if one shot Horny spell is available
         IS_SECRET_LEVEL(0x0020), // The map is Secret level
@@ -909,6 +909,9 @@ public final class KwdFile {
         // And alphas and images probably share the same attributes
         ResourceType resourceType = artResource.new ResourceType();
         switch (type) {
+            case 0: // skip empty type
+            case 8: // FIXME nothing todo ?!
+                break;
             case 1:
             case 2:
             case 3: { // Images of different type
@@ -943,9 +946,10 @@ public final class KwdFile {
                 resourceType = artResource.new Proc();
                 ((Proc) resourceType).setId(ConversionUtils.readUnsignedInteger(Arrays.copyOfRange(bytes, 0, 4)));
                 break;
-
-
             }
+            default:
+                logger.log(Level.WARNING, "unknown artResource type {0}", type);
+                break;
         }
 
         // Add the common values
@@ -1406,46 +1410,47 @@ public final class KwdFile {
             byte[] bytes = new byte[32];
             file.read(bytes);
             creature.setName(ConversionUtils.bytesToString(bytes).trim());
-            // 39 ArtResources (with IMPs these are not 100% same)
-            creature.setUnknown1Resource(readArtResource(file));
-            creature.setAnimWalkResource(readArtResource(file));
-            creature.setAnimRunResource(readArtResource(file));
-            creature.setAnimDraggedPoseResource(readArtResource(file));
-            creature.setAnimRecoilHffResource(readArtResource(file));
-            creature.setAnimMelee1Resource(readArtResource(file));
-            creature.setAnimMagicResource(readArtResource(file));
-            creature.setAnimDieResource(readArtResource(file));
-            creature.setAnimHappyResource(readArtResource(file));
-            creature.setAnimAngryResource(readArtResource(file));
-            creature.setAnimStunnedPoseResource(readArtResource(file));
-            creature.setAnimSwingResource(readArtResource(file));
-            creature.setAnimSleepResource(readArtResource(file));
-            creature.setAnimEatResource(readArtResource(file));
-            creature.setAnimResearchResource(readArtResource(file));
-            creature.setUnknown2Resource(readArtResource(file));
-            creature.setAnimDejectedPoseResource(readArtResource(file));
-            creature.setAnimTortureResource(readArtResource(file));
-            creature.setUnknown3Resource(readArtResource(file));
-            creature.setAnimDrinkResource(readArtResource(file));
-            creature.setAnimIdle1Resource(readArtResource(file));
-            creature.setAnimRecoilHfbResource(readArtResource(file));
-            creature.setUnknown4Resource(readArtResource(file));
-            creature.setAnimPrayResource(readArtResource(file));
-            creature.setAnimFallbackResource(readArtResource(file));
-            creature.setAnimElecResource(readArtResource(file));
-            creature.setAnimElectrocuteResource(readArtResource(file));
-            creature.setAnimGetUpResource(readArtResource(file));
-            creature.setAnimDanceResource(readArtResource(file));
-            creature.setAnimDrunkResource(readArtResource(file));
-            creature.setAnimEntranceResource(readArtResource(file));
-            creature.setAnimIdle2Resource(readArtResource(file));
-            creature.setUnknown5Resource(readArtResource(file));
-            creature.setUnknown6Resource(readArtResource(file));
-            creature.setAnimDrunk2Resource(readArtResource(file));
-            creature.setUnknown7Resource(readArtResource(file));
-            creature.setUnknown8Resource(readArtResource(file));
-            creature.setIcon1Resource(readArtResource(file));
-            creature.setIcon2Resource(readArtResource(file));
+            bytes = new byte[84];
+            file.read(bytes);
+            creature.setUnknown1Resource(bytes);  // all 0: Maiden Of The Nest, Prince Balder, Horny, other the same
+            creature.setResource(Creature.ResourceEnum.animWalk, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animRun, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animDraggedPose, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animRecoilHff, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animMelee1, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animMagic, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animDie, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animHappy, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animAngry, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animStunnedPose, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animSwing, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animSleep, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animEat, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animResearch, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.unknown2, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animDejectedPose, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animTorture, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.unknown3, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animDrink, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animIdle1, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animRecoilHfb, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.unknown4, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animPray, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animFallback, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animElec, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animElectrocute, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animGetUp, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animDance, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animDrunk, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animEntrance, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animIdle2, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.unknown5, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.unknown6, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animDrunk2, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.unknown7, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.unknown8, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.icon1, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.icon2, readArtResource(file));
             //
             creature.setUnkcec(ConversionUtils.readUnsignedShort(file));
             creature.setUnkcee(ConversionUtils.readUnsignedInteger(file));
@@ -1473,7 +1478,7 @@ public final class KwdFile {
             creature.setFirstPersonWalkCycleScale((short) file.readUnsignedByte());
             creature.setIntroCameraPathIndex((short) file.readUnsignedByte());
             creature.setUnk2e2((short) file.readUnsignedByte());
-            creature.setPortraitResource(readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.portrait, readArtResource(file));
             creature.setLight(readLight(file));
             Attraction[] attractions = new Attraction[2];
             for (int x = 0; x < attractions.length; x++) {
@@ -1625,19 +1630,19 @@ public final class KwdFile {
             creature.setFirstPersonFilterResource(readArtResource(file));
             creature.setUnkfcb(ConversionUtils.readUnsignedShort(file));
             creature.setUnk4(ConversionUtils.readUnsignedInteger(file));
-            creature.setRef3(readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.drunkIdle, readArtResource(file));
             creature.setSpecial1Swipe(ConversionUtils.parseEnum(file.readUnsignedByte(), Creature.Swipe.class));
             creature.setSpecial2Swipe(ConversionUtils.parseEnum(file.readUnsignedByte(), Creature.Swipe.class));
-            creature.setFirstPersonMeleeResource(readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.firstPersonMelee, readArtResource(file));
             creature.setUnk6(ConversionUtils.readUnsignedInteger(file));
             creature.setTortureHpChange(ConversionUtils.readShort(file));
             creature.setTortureMoodChange(ConversionUtils.readShort(file));
-            creature.setAnimMelee2Resource(readArtResource(file));
-            creature.setUnknown9Resource(readArtResource(file));
-            creature.setUnknown10Resource(readArtResource(file));
-            creature.setUnknown11Resource(readArtResource(file));
-            creature.setUnknown12Resource(readArtResource(file));
-            creature.setUnknown13Resource(readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animMelee2, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.unknown9, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.unknown10, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.unknown11, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.unknown12, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.unknown13, readArtResource(file));
             Unk7[] unk7s = new Unk7[7];
             for (int x = 0; x < unk7s.length; x++) {
                 Unk7 unk7 = creature.new Unk7();
@@ -1647,7 +1652,7 @@ public final class KwdFile {
                 unk7s[x] = unk7;
             }
             creature.setUnk7(unk7s);
-            creature.setAnimWalkbackResource(readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animWalkback, readArtResource(file));
             X1323[] x1323s = new X1323[48];
             for (int x = 0; x < x1323s.length; x++) {
                 X1323 x1323 = creature.new X1323();
@@ -1656,9 +1661,9 @@ public final class KwdFile {
                 x1323s[x] = x1323;
             }
             creature.setX1323(x1323s);
-            creature.setAnimPoseFrameResource(readArtResource(file));
-            creature.setAnimWalk2Resource(readArtResource(file));
-            creature.setAnimDiePoseResource(readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animPoseFrame, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animWalk2, readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.animDiePose, readArtResource(file));
             creature.setUniqueNameTextId(ConversionUtils.readUnsignedShort(file));
             int[] x14e1 = new int[2];
             for (int x = 0; x < x14e1.length; x++) {
@@ -1667,7 +1672,7 @@ public final class KwdFile {
             creature.setX14e1(x14e1);
             creature.setFirstPersonSpecialAbility1Count(ConversionUtils.readUnsignedInteger(file));
             creature.setFirstPersonSpecialAbility2Count(ConversionUtils.readUnsignedInteger(file));
-            creature.setUniqueResource(readArtResource(file));
+            creature.setResource(Creature.ResourceEnum.unique, readArtResource(file));
             creature.setUnk1545(ConversionUtils.readUnsignedInteger(file));
 
             // The normal file stops here, but if it is the bigger one, continue
@@ -2319,7 +2324,7 @@ public final class KwdFile {
                 }
             }
 
-            System.out.println(thingTag[0] + " type");
+            // System.out.println(thingTag[0] + " type");
 
             // Add to the list
             things.add(thing);
