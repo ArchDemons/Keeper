@@ -226,7 +226,7 @@ public class Settings {
     }
     private static volatile Settings instance;
     private final AppSettings settings;
-    private final static int MAX_FPS = 90;
+    private final static int MAX_FPS = 999;
     private final static String USER_HOME_FOLDER = System.getProperty("user.home").concat(File.separator).concat(".").concat(Main.TITLE).concat(File.separator);
     private final static String USER_SETTINGS_FILE = USER_HOME_FOLDER.concat("openkeeper.properties");
     private static final Logger logger = Logger.getLogger(Settings.class.getName());

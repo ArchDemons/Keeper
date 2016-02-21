@@ -23,6 +23,7 @@ import com.jme3.animation.LoopMode;
 import com.jme3.asset.AssetManager;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import java.util.logging.Logger;
 import toniarts.openkeeper.tools.convert.AssetsConverter;
 import toniarts.openkeeper.tools.convert.map.ArtResource;
 import toniarts.openkeeper.tools.convert.map.Creature;
@@ -42,6 +43,7 @@ public class CreatureLoader implements ILoader<Thing.Creature> {
 
     private final KwdFile kwdFile;
     private final WorldState worldState;
+    private static final Logger logger = Logger.getLogger(CreatureLoader.class.getName());
 
     public CreatureLoader(KwdFile kwdFile, WorldState worldState) {
         this.kwdFile = kwdFile;
@@ -217,6 +219,7 @@ public class CreatureLoader implements ILoader<Thing.Creature> {
                     }
                 }
             } catch (Exception e) {
+                logger.severe(e.getLocalizedMessage());
                 throw new RuntimeException("Model not found!", e);
             }
         }

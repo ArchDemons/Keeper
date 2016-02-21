@@ -22,8 +22,8 @@ import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
+import com.jme3.renderer.Camera;
 import com.jme3.renderer.queue.RenderQueue;
-import com.jme3.scene.BatchNode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.SceneGraphVisitor;
@@ -33,7 +33,6 @@ import java.awt.Point;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -52,6 +51,7 @@ import toniarts.openkeeper.world.room.RoomInstance;
 import toniarts.openkeeper.world.room.WallSection;
 import toniarts.openkeeper.world.room.WallSection.WallDirection;
 import toniarts.openkeeper.world.terrain.Water;
+import toniarts.openkeeper.world.tree.QuadTree;
 
 /**
  * Loads whole maps, and handles the maps
@@ -63,8 +63,6 @@ public abstract class MapLoader implements ILoader<KwdFile> {
     public final static float TILE_WIDTH = 1;
     public final static float TILE_HEIGHT = 1;
 
-    private final static int PAGE_SQUARE_SIZE = 8; // Divide the terrain to square "pages"
-    private List<Node> pages;
     private final KwdFile kwdFile;
     private Node map;
     private final MapData mapData;
@@ -78,6 +76,7 @@ public abstract class MapLoader implements ILoader<KwdFile> {
     private final HashMap<RoomInstance, GenericRoom> roomActuals = new HashMap<>(); // Rooms by room instance
     private final HashMap<Point, EntityInstance<Terrain>> terrainBatchCoordinates = new HashMap<>(); // A quick glimpse whether terrain batch at specific coordinates is already "found"
     private static final Logger logger = Logger.getLogger(MapLoader.class.getName());
+    private QuadTree root;
 
     public MapLoader(AssetManager assetManager, KwdFile kwdFile) {
         this.kwdFile = kwdFile;
@@ -85,6 +84,8 @@ public abstract class MapLoader implements ILoader<KwdFile> {
 
         // Create modifiable tiles
         mapData = new MapData(kwdFile);
+
+
     }
 
     @Override
@@ -92,10 +93,9 @@ public abstract class MapLoader implements ILoader<KwdFile> {
 
         //Create a root
         map = new Node("Map");
-        Node terrain = new Node("Terrain");
-        generatePages(terrain);
+        root = new QuadTree("Terrain", mapData.getWidth() * TILE_WIDTH, TILE_HEIGHT, mapData.getHeight() * TILE_WIDTH);
         roomsNode = new Node("Rooms");
-        terrain.attachChild(roomsNode);
+        map.attachChild(roomsNode);
 
         // Go through the map
         int tilesCount = mapData.getWidth() * object.getMap().getHeight();
@@ -104,7 +104,7 @@ public abstract class MapLoader implements ILoader<KwdFile> {
             for (int x = 0; x < mapData.getWidth(); x++) {
 
                 try {
-                    handleTile(tiles, x, y, assetManager, terrain);
+                    handleTile(tiles, x, y, assetManager);
                 } catch (Exception e) {
                     logger.log(Level.SEVERE, "Failed to handle tile at " + x + ", " + y + "!", e);
                 }
@@ -114,13 +114,7 @@ public abstract class MapLoader implements ILoader<KwdFile> {
             }
         }
 
-        // Batch the terrain pages
-        for (Node page : pages) {
-            ((BatchNode) page.getChild(0)).batch();
-            ((BatchNode) page.getChild(1)).batch();
-            ((BatchNode) page.getChild(2)).batch();
-        }
-        map.attachChild(terrain);
+        map.attachChild(root.getRootNode());
 
         // Create the water
         if (!waterBatches.isEmpty()) {
@@ -139,6 +133,10 @@ public abstract class MapLoader implements ILoader<KwdFile> {
         return mapData;
     }
 
+    public List<Spatial> getVisibleSpatial(Camera camera) {
+        return root.getVisibleSpatial(camera);
+    }
+
     /**
      * Update the selected tiles (and neighbouring tiles if needed)
      *
@@ -147,41 +145,14 @@ public abstract class MapLoader implements ILoader<KwdFile> {
      * @param updatableTiles list of tiles to update
      */
     protected void updateTiles(Point... points) {
-
         // Reconstruct all tiles in the area
-        Set<BatchNode> nodesNeedBatching = new HashSet<>();
-        Node terrainNode = (Node) map.getChild(0);
         for (Point point : points) {
-
-            // Reconstruct and mark for patching
-            // The tile node needs to created anew, somehow the BatchNode just doesn't get it if I remove children from subnode
-            Node pageNode = getPageNode(point.x, point.y, terrainNode);
-            Node tileNode = getTileNode(point.x, point.y, (Node) pageNode.getChild(0));
-            if (!tileNode.getChildren().isEmpty()) {
-                tileNode.removeFromParent();
-                ((BatchNode) pageNode.getChild(0)).attachChildAt(new Node(tileNode.getName()), getTileNodeIndex(point.x, point.y));
-                nodesNeedBatching.add((BatchNode) pageNode.getChild(0));
-            }
-            tileNode = getTileNode(point.x, point.y, (Node) pageNode.getChild(1));
-            if (!tileNode.getChildren().isEmpty()) {
-                tileNode.removeFromParent();
-                ((BatchNode) pageNode.getChild(1)).attachChildAt(new Node(tileNode.getName()), getTileNodeIndex(point.x, point.y));
-                nodesNeedBatching.add((BatchNode) pageNode.getChild(1));
-            }
-            tileNode = getTileNode(point.x, point.y, (Node) pageNode.getChild(2));
-            if (!tileNode.getChildren().isEmpty()) {
-                tileNode.removeFromParent();
-                ((BatchNode) pageNode.getChild(2)).attachChildAt(new Node(tileNode.getName()), getTileNodeIndex(point.x, point.y));
-                nodesNeedBatching.add((BatchNode) pageNode.getChild(2));
-            }
-
             // Reconstruct
-            handleTile(mapData.getTiles(), point.x, point.y, assetManager, (Node) map.getChild(0));
-        }
-
-        // Batch
-        for (BatchNode batchNode : nodesNeedBatching) {
-            batchNode.batch();
+            boolean removed = root.detachChild(point.x, point.y);
+            if (!removed) {
+                logger.log(Level.WARNING, "bad remove point {0}", point);
+            }
+            handleTile(mapData.getTiles(), point.x, point.y, assetManager);
         }
     }
 
@@ -199,53 +170,6 @@ public abstract class MapLoader implements ILoader<KwdFile> {
                 }
             }
         });
-    }
-
-    /**
-     * Generate the page nodes
-     *
-     * @param root where to generate pages on
-     */
-    private void generatePages(Node root) {
-        pages = new ArrayList<>(((int) Math.ceil(mapData.getHeight() / (float) PAGE_SQUARE_SIZE))
-                * ((int) Math.ceil(mapData.getWidth() / (float) PAGE_SQUARE_SIZE)));
-        for (int y = 0; y < (int) Math.ceil(mapData.getHeight() / (float) PAGE_SQUARE_SIZE); y++) {
-            for (int x = 0; x < (int) Math.ceil(mapData.getWidth() / (float) PAGE_SQUARE_SIZE); x++) {
-                Node page = new Node(x + "_" + y);
-
-                // Create batch nodes for ceiling, floor and walls
-                BatchNode floor = new BatchNode("floor");
-                floor.setShadowMode(RenderQueue.ShadowMode.Receive); // Floors don't cast
-                generateTileNodes(floor, x, y);
-                page.attachChild(floor);
-                BatchNode wall = new BatchNode("wall");
-                wall.setShadowMode(RenderQueue.ShadowMode.CastAndReceive); // Walls cast and receive shadows
-                generateTileNodes(wall, x, y);
-                page.attachChild(wall);
-                BatchNode ceiling = new BatchNode("ceiling");
-                ceiling.setShadowMode(RenderQueue.ShadowMode.Off); // No lights above ceilings
-                generateTileNodes(ceiling, x, y);
-                page.attachChild(ceiling);
-
-                pages.add(page);
-                root.attachChild(page);
-            }
-        }
-    }
-
-    /**
-     * Create tile nodes inside a page
-     *
-     * @param pageBatch the page
-     * @param pageX page x
-     * @param pageY page y
-     */
-    private void generateTileNodes(BatchNode pageBatch, int pageX, int pageY) {
-        for (int y = 0; y < PAGE_SQUARE_SIZE; y++) {
-            for (int x = 0; x < PAGE_SQUARE_SIZE; x++) {
-                pageBatch.attachChild(new Node((x + pageX * PAGE_SQUARE_SIZE) + "_" + (y + pageY * PAGE_SQUARE_SIZE)));
-            }
-        }
     }
 
     private boolean hasWall(int x, int y, TileData[][] tiles, Terrain terrain) {
@@ -313,7 +237,8 @@ public abstract class MapLoader implements ILoader<KwdFile> {
                         String asset = m.getAssetName();
 
                         // Load new material
-                        Material newMaterial = assetManager.loadMaterial(asset.substring(0, asset.lastIndexOf(KmfModelLoader.MATERIAL_ALTERNATIVE_TEXTURE_SUFFIX_SEPARATOR) + 1).concat(tex + ".j3m"));
+                        Material newMaterial = assetManager.loadMaterial(asset.substring(0,
+                                asset.lastIndexOf(KmfModelLoader.MATERIAL_ALTERNATIVE_TEXTURE_SUFFIX_SEPARATOR) + 1).concat(tex + ".j3m"));
                         g.setMaterial(newMaterial);
                     }
                 }
@@ -364,7 +289,7 @@ public abstract class MapLoader implements ILoader<KwdFile> {
      * @param assetManager the asset manager instance
      * @param root the root node
      */
-    private void handleTile(TileData[][] tiles, int x, int y, AssetManager assetManager, Node root) {
+    private void handleTile(TileData[][] tiles, int x, int y, AssetManager assetManager) {
         TileData tile = tiles[x][y];
         // Get the terrain
         Terrain terrain = kwdFile.getTerrain(tile.getTerrainId());
@@ -394,11 +319,18 @@ public abstract class MapLoader implements ILoader<KwdFile> {
             }
         }
 
-        Node pageNode = getPageNode(x, y, root);
-        handleTop(terrain, tiles, tile, x, y, assetManager, pageNode);
+        Node tileNode = new Node(x + "_" + y);
+        //Node pageNode = getPageNode(x, y, root);
+        handleTop(terrain, tiles, tile, x, y, assetManager, tileNode);
         if (terrain.getFlags().contains(Terrain.TerrainFlag.SOLID)) {
-            handleSide(terrain, tiles, tile, x, y, assetManager, pageNode);
+            handleSide(terrain, tiles, tile, x, y, assetManager, tileNode);
         }
+
+        if (tile.isSelected()) { // Just set the selected material here if needed
+            setTaggedMaterialToGeometries(tileNode);
+        }
+
+        root.attachChild(tileNode, x, y);
     }
 
     /**
@@ -410,9 +342,9 @@ public abstract class MapLoader implements ILoader<KwdFile> {
      * @param x tile X coordinate
      * @param y tile Y coordinate
      * @param assetManager the asset manager instance
-     * @param pageNode page node
+     * @param tileNode page node
      */
-    private void handleTop(Terrain terrain, TileData[][] tiles, TileData tile, int x, int y, AssetManager assetManager, Node pageNode) {
+    private void handleTop(Terrain terrain, TileData[][] tiles, TileData tile, int x, int y, AssetManager assetManager, Node tileNode) {
 
         ArtResource model = terrain.getCompleteResource();
 
@@ -452,135 +384,69 @@ public abstract class MapLoader implements ILoader<KwdFile> {
             setRandomTexture(assetManager, spatial, tile);
         }
 
-        Node topTileNode;
+        //Node topTileNode;
         if (terrain.getFlags().contains(Terrain.TerrainFlag.SOLID)) {
-            topTileNode = getTileNode(x, y, (Node) pageNode.getChild(2));
+            //topTileNode = getTileNode(x, y, (Node) pageNode.getChild(2));
             spatial.move(x * TILE_WIDTH, TILE_HEIGHT, y * TILE_WIDTH);
+            spatial.setShadowMode(RenderQueue.ShadowMode.Off); // No lights above ceilings
 
         } else {
-            topTileNode = getTileNode(x, y, (Node) pageNode.getChild(0));
+            //topTileNode = getTileNode(x, y, (Node) pageNode.getChild(0));
             spatial.move(x * TILE_WIDTH, 0, y * TILE_WIDTH);
+            spatial.setShadowMode(RenderQueue.ShadowMode.Receive); // Floors don't cast
         }
-        topTileNode.attachChild(spatial);
-        if (tile.isSelected()) { // Just set the selected material here if needed
-            setTaggedMaterialToGeometries(topTileNode);
-        }
+        tileNode.attachChild(spatial);
     }
 
-    private void handleSide(Terrain terrain, TileData[][] tiles, TileData tile, int x, int y, AssetManager assetManager, Node pageNode) {
-        Node sideTileNode = getTileNode(x, y, (Node) pageNode.getChild(1));
+    private void handleSide(Terrain terrain, TileData[][] tiles, TileData tile, int x, int y, AssetManager assetManager, Node tileNode) {
+        //Node sideTileNode = getTileNode(x, y, (Node) tileNode.getChild(1));
         String modelName = terrain.getSideResource().getName();
 
         // North
         if (hasWall(x, y - 1, tiles, terrain)) {
             Spatial wall = loadAsset(assetManager, AssetsConverter.MODELS_FOLDER + "/" + modelName + ".j3o", true);
+            wall.setShadowMode(RenderQueue.ShadowMode.CastAndReceive); // Walls cast and receive shadows
             wall.move(0, 0, -TILE_WIDTH);
-            addWall(wall, sideTileNode, x, y, 0);
+            addWall(wall, tileNode, x, y, 0);
         }
 
         // South
         if (hasWall(x, y + 1, tiles, terrain)) {
             Spatial wall = loadAsset(assetManager, AssetsConverter.MODELS_FOLDER + "/" + modelName + ".j3o", true);
+            wall.setShadowMode(RenderQueue.ShadowMode.CastAndReceive); // Walls cast and receive shadows
             wall.move(-TILE_WIDTH, 0, 0);
-            addWall(wall, sideTileNode, x, y, -FastMath.PI);
+            addWall(wall, tileNode, x, y, -FastMath.PI);
         }
 
         // East
         if (hasWall(x + 1, y, tiles, terrain)) {
             Spatial wall = loadAsset(assetManager, AssetsConverter.MODELS_FOLDER + "/" + modelName + ".j3o", true);
-            addWall(wall, sideTileNode, x, y, -FastMath.HALF_PI);
+            wall.setShadowMode(RenderQueue.ShadowMode.CastAndReceive); // Walls cast and receive shadows
+            addWall(wall, tileNode, x, y, -FastMath.HALF_PI);
         }
 
         // West
         if (hasWall(x - 1, y, tiles, terrain)) {
             Spatial wall = loadAsset(assetManager, AssetsConverter.MODELS_FOLDER + "/" + modelName + ".j3o", true);
+            wall.setShadowMode(RenderQueue.ShadowMode.CastAndReceive); // Walls cast and receive shadows
             wall.move(-TILE_WIDTH, 0, -TILE_WIDTH);
-            addWall(wall, sideTileNode, x, y, FastMath.HALF_PI);
-        }
-
-        if (tile.isSelected()) {
-            setTaggedMaterialToGeometries(sideTileNode);
+            addWall(wall, tileNode, x, y, FastMath.HALF_PI);
         }
     }
 
     public void flashTile(int x, int y, int time, boolean enabled) {
 
-        Node terrainNode = (Node) map.getChild(0);
-        Node pageNode = getPageNode(x, y, terrainNode);
+        Spatial terrainNode = root.getChild(x, y);
 
-        Node tileNode = getTileNode(x, y, (Node) pageNode.getChild(0));
-        if (tileNode != null) {
+        if (terrainNode != null) {
             if (enabled) {
-                tileNode.addControl(new FlashTileControl(time));
+                terrainNode.addControl(new FlashTileControl(time));
             } else {
-                tileNode.removeControl(FlashTileControl.class);
-            }
-        }
-
-        tileNode = getTileNode(x, y, (Node) pageNode.getChild(1));
-        if (tileNode != null) {
-            if (enabled) {
-                tileNode.addControl(new FlashTileControl(time));
-            } else {
-                tileNode.removeControl(FlashTileControl.class);
-            }
-        }
-
-        tileNode = getTileNode(x, y, (Node) pageNode.getChild(2));
-        if (tileNode != null) {
-            if (enabled) {
-                tileNode.addControl(new FlashTileControl(time));
-            } else {
-                tileNode.removeControl(FlashTileControl.class);
+                terrainNode.removeControl(FlashTileControl.class);
             }
         }
     }
 
-    /**
-     * Get the terrain tile node
-     *
-     * @param x the tile x
-     * @param y the tile y
-     * @param root the page node
-     * @return tile node
-     */
-    private Node getTileNode(int x, int y, Node page) {
-        return (Node) page.getChild(getTileNodeIndex(x, y));
-    }
-
-    /**
-     * Get index for the tile node, where it should be
-     *
-     * @param x the tile x
-     * @param y the tile y
-     * @return the index inside the page
-     */
-    private int getTileNodeIndex(int x, int y) {
-        int tileX = x - ((int) Math.floor(x / (float) PAGE_SQUARE_SIZE)) * PAGE_SQUARE_SIZE;
-        int tileY = y - ((int) Math.floor(y / (float) PAGE_SQUARE_SIZE)) * PAGE_SQUARE_SIZE;
-        return tileY * PAGE_SQUARE_SIZE + tileX;
-    }
-
-    /**
-     * Get the terrain "page" we are on
-     *
-     * @param x the tile x
-     * @param y the tile y
-     * @param root the root node
-     * @return page node
-     */
-    protected Node getPageNode(int x, int y, Node root) {
-        int pageX = (int) Math.floor(x / (float) PAGE_SQUARE_SIZE);
-        int pageY = (int) Math.floor(y / (float) PAGE_SQUARE_SIZE);
-
-        // Get the page index
-        int index = pageX;
-        if (pageY > 0) {
-            int pagesPerRow = (int) Math.ceil(mapData.getWidth() / (float) PAGE_SQUARE_SIZE);
-            index += pagesPerRow * pageY;
-        }
-        return (Node) root.getChild(index);
-    }
 
     /**
      * Checks if this terrain piece is actually a room and the room type has

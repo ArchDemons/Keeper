@@ -19,6 +19,7 @@ package toniarts.openkeeper.world;
 import com.jme3.asset.AssetManager;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
+import com.jme3.scene.BatchNode;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import toniarts.openkeeper.tools.convert.AssetsConverter;
@@ -123,7 +124,7 @@ public class WaterConstructor extends TileConstructor {
         else {
 
             // 2x2
-            floor = new Node();
+            floor = new BatchNode();
             for (int i = 0; i < 2; i++) {
                 for (int k = 0; k < 2; k++) {
 
@@ -213,9 +214,10 @@ public class WaterConstructor extends TileConstructor {
                         part.move(movement);
                     }
                     part.move((i - 1) * TILE_WIDTH, -(pieceNumber == 7 ? WATER_DEPTH : 0), (k - 1) * TILE_WIDTH);
-                    ((Node) floor).attachChild(part);
+                    ((BatchNode) floor).attachChild(part);
                 }
             }
+            ((BatchNode) floor).batch();
         }
         //
         return floor;
