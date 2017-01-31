@@ -48,7 +48,7 @@ public abstract class AbstractCreatureSteeringControl extends HighlightControl i
     private float maxLinearAcceleration = 2;
     private float maxAngularSpeed = 0.1f;
     private float maxAngularAcceleration = 0.1f;
-    private volatile boolean applySteering = false;
+    private volatile boolean ready = false;
 
     public AbstractCreatureSteeringControl(Creature creature) {
         this.creature = creature;
@@ -71,8 +71,8 @@ public abstract class AbstractCreatureSteeringControl extends HighlightControl i
     protected void controlUpdate(float tpf) {
 
         // Set the actual location to where we believe it is
-        if (applySteering) {
-            applySteering = false;
+        if (ready) {
+            ready = false;
             getSpatial().setLocalTranslation(position.x, 0, position.y);
             getSpatial().setLocalRotation(getSpatial().getLocalRotation().fromAngles(0, -orientation, 0));
         }
@@ -93,7 +93,7 @@ public abstract class AbstractCreatureSteeringControl extends HighlightControl i
              */
             // Apply steering acceleration
             applySteering(steeringOutput, tpf);
-            applySteering = true;
+            ready = true;
         }
     }
 
@@ -246,6 +246,12 @@ public abstract class AbstractCreatureSteeringControl extends HighlightControl i
     }
 
     public void setSteeringBehavior(SteeringBehavior<Vector2> steeringBehavior) {
+        if (steeringBehavior != null) {
+            // Init the position
+            position.set(getSpatial().getLocalTranslation().x, getSpatial().getLocalTranslation().z);
+            orientation = getSpatial().getLocalRotation().getY();
+        }
+
         this.steeringBehavior = steeringBehavior;
     }
 

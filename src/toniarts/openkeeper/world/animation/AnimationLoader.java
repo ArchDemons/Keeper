@@ -138,7 +138,7 @@ public class AnimationLoader {
                             animationControl.onAnimationCycleDone();
 
                             // See if we need to stop
-                            if (animationControl.isStopAnimation() || channel.getLoopMode() == LoopMode.DontLoop) {
+                            if (animationControl.isNeedStop()|| channel.getLoopMode() == LoopMode.DontLoop) {
 
                                 // Stop us
                                 control.setEnabled(false);

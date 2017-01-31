@@ -40,7 +40,7 @@ import toniarts.openkeeper.world.object.HighlightControl;
  *
  * @author Toni Helenius <helenius.toni@gmail.com>
  */
-public class TrapControl extends HighlightControl implements IInteractiveControl, AnimationControl, IUnitFlowerControl {
+public class TrapControl extends HighlightControl implements IInteractiveControl, IUnitFlowerControl {
 
     public enum TrapState {
 
@@ -189,17 +189,14 @@ public class TrapControl extends HighlightControl implements IInteractiveControl
         return health;
     }
 
-    @Override
     public void onAnimationStop() {
 
     }
 
-    @Override
     public void onAnimationCycleDone() {
         //
     }
 
-    @Override
     public boolean isStopAnimation() {
         return true; // We stop it always
     }

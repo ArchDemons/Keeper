@@ -45,7 +45,7 @@ import toniarts.openkeeper.world.object.HighlightControl;
  *
  * @author Toni Helenius <helenius.toni@gmail.com>
  */
-public class DoorControl extends HighlightControl implements IInteractiveControl, AnimationControl, IUnitFlowerControl {
+public class DoorControl extends HighlightControl implements IInteractiveControl, IUnitFlowerControl {
 
     public enum DoorState {
 
@@ -270,7 +270,6 @@ public class DoorControl extends HighlightControl implements IInteractiveControl
         return health;
     }
 
-    @Override
     public void onAnimationStop() {
         animating = false;
 
@@ -281,12 +280,10 @@ public class DoorControl extends HighlightControl implements IInteractiveControl
         }
     }
 
-    @Override
     public void onAnimationCycleDone() {
         //
     }
 
-    @Override
     public boolean isStopAnimation() {
         return true; // We stop it always
     }

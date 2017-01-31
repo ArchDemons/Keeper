@@ -18,6 +18,8 @@ package toniarts.openkeeper.ai.creature;
 
 import com.badlogic.gdx.ai.fsm.State;
 import com.badlogic.gdx.ai.msg.Telegram;
+import toniarts.openkeeper.tools.convert.map.Variable.MiscVariable.MiscType;
+import toniarts.openkeeper.world.animation.AnimationControl.AnimationType;
 import toniarts.openkeeper.world.creature.CreatureControl;
 
 /**
@@ -38,41 +40,12 @@ public enum CreatureState implements State<CreatureControl> {
                 return;
             }
 
+            entity.getAnimation().play(AnimationType.IDLE);
             // Idling is the last resort
             entity.unassingCurrentTask();
-            if (!findStuffToDo(entity)) {
+            if (!entity.findStuffToDo(entity)) {
                 entity.navigateToRandomPoint();
             }
-        }
-
-        private boolean findStuffToDo(CreatureControl entity) {
-
-            // See if we should just follow
-            if (entity.getParty() != null && !entity.getParty().isPartyLeader(entity)) {
-                entity.setFollowTarget(entity.getParty().getPartyLeader());
-                entity.getStateMachine().changeState(CreatureState.FOLLOW);
-                return true;
-            }
-
-            // See if we have an objective
-            if (entity.hasObjective() && entity.followObjective()) {
-                entity.getStateMachine().changeState(CreatureState.WORK);
-                return true;
-            }
-
-            // See basic needs
-            if (entity.needsLair() && !entity.hasLair() && entity.findLair()) {
-                entity.getStateMachine().changeState(CreatureState.WORK);
-                return true; // Found work
-            }
-
-            // Find work
-            if (entity.findWork() || (entity.isWorker() && entity.isTooMuchGold() && entity.dropGoldToTreasury())) {
-                entity.getStateMachine().changeState(CreatureState.WORK);
-                return true; // Found work
-            }
-
-            return false;
         }
 
         @Override
@@ -83,14 +56,21 @@ public enum CreatureState implements State<CreatureControl> {
                 return;
             }
 
-            if (!findStuffToDo(entity) && entity.getIdleAnimationPlayCount() > 0 && entity.isStopped()) {
-                entity.navigateToRandomPoint();
+            if (!entity.findStuffToDo(entity)) {
+                
+                
+                if (entity.isStopped() && entity.getAnimation().isCycleDone()) {
+                    entity.getAnimation().stop();
+                    if (!entity.getAnimation().isEnabled()) {
+                        entity.navigateToRandomPoint();
+                    }
+                }
             }
         }
 
         @Override
         public void exit(CreatureControl entity) {
-
+            entity.getAnimation().stop();
         }
 
         @Override
@@ -131,9 +111,10 @@ public enum CreatureState implements State<CreatureControl> {
 
         @Override
         public void update(CreatureControl entity) {
-//                    if (entity.idleTimeExceeded()) {
-//                        entity.getStateMachine().changeState(IDLE);
-//                    }
+            float time = entity.getVariable(MiscType.DEAD_BODY_DIES_AFTER_SECONDS);
+            if (entity.getTimeInState() > time) {
+                entity.removeCreature();
+            }
         }
 
         @Override
@@ -149,12 +130,16 @@ public enum CreatureState implements State<CreatureControl> {
 
         @Override
         public void enter(CreatureControl entity) {
-
+            entity.stop();
+            entity.getAnimation().play(AnimationType.FALLBACK);
         }
 
         @Override
         public void update(CreatureControl entity) {
-
+            if (!entity.getAnimation().isEnabled()) {
+                entity.getStateMachine().revertToPreviousState();
+                //entity.getStateMachine().changeState(IDLE);
+            }
         }
 
         @Override
@@ -197,11 +182,22 @@ public enum CreatureState implements State<CreatureControl> {
             if (!entity.isAssignedTaskValid() && !entity.dropGoldToTreasury()) {
                 entity.getStateMachine().changeState(IDLE);
             }
+            
+            if (entity.getAssignedTask() != null && !entity.getAnimation().isEnabled()) {
+                entity.getAnimation().play(AnimationType.WORK);
+            }
+            
+            if (entity.isStopped() && entity.getAnimation().getType() == AnimationType.WORK 
+                    && entity.isAssignedTaskValid()) {
+                // Different work based reactions
+                entity.getAssignedTask().executeTask(entity);
+            }
+
         }
 
         @Override
         public void exit(CreatureControl entity) {
-
+            entity.getAnimation().stop();
         }
 
         @Override
@@ -277,7 +273,8 @@ public enum CreatureState implements State<CreatureControl> {
             }
 
             // Don't let the target wander too far off
-            if (entity.isStopped() && !entity.getFollowTarget().isStopped() && entity.getDistanceToCreature(entity.getFollowTarget()) > 2.5f) {
+            if (entity.isStopped() && !entity.getFollowTarget().isStopped() 
+                    && entity.getDistanceToCreature(entity.getFollowTarget()) > 2.5f) {
                 entity.followTarget(entity);
             } else if (entity.isStopped()) {
                 entity.navigateToRandomPointAroundTarget(entity.getFollowTarget(), 2);
@@ -300,12 +297,14 @@ public enum CreatureState implements State<CreatureControl> {
 
         @Override
         public void enter(CreatureControl entity) {
-
+            entity.getAnimation().play(AnimationType.ENTERING);
         }
 
         @Override
         public void update(CreatureControl entity) {
-            entity.getStateMachine().changeState(IDLE);
+            if (!entity.getAnimation().isEnabled()) {
+                entity.getStateMachine().changeState(IDLE);
+            }
         }
 
         @Override
@@ -371,11 +370,18 @@ public enum CreatureState implements State<CreatureControl> {
         public void enter(CreatureControl entity) {
             entity.stop();
             entity.unassingCurrentTask();
+            
+            entity.getAnimation().play(AnimationType.DYING);
+            entity.showUnitFlower(Integer.MAX_VALUE);
         }
 
         @Override
         public void update(CreatureControl entity) {
-
+            
+            float time = entity.getVariable(MiscType.CREATURE_DYING_STATE_DURATION_SECONDS);
+            if (entity.getTimeInState() > time) {
+                entity.getStateMachine().changeState(DEAD);
+            }
         }
 
         @Override
@@ -388,25 +394,30 @@ public enum CreatureState implements State<CreatureControl> {
             return true;
         }
 
-    }, STUNNED;
+    }, STUNNED {
 
-    @Override
-    public void enter(CreatureControl entity) {
+        @Override
+        public void enter(CreatureControl entity) {
+            entity.getAnimation().play(AnimationType.STUNNED);
+        }
 
-    }
+        @Override
+        public void update(CreatureControl entity) {
+            float time = entity.getVariable(MiscType.CREATURE_STUNNED_TIME_SECONDS);
+            if (entity.getTimeInState() > time) {
+                entity.getStateMachine().changeState(IDLE);
+            }
+            //float time = gameState.getLevelVariable(MiscType.CREATURE_STUNNED_EFFECT_DELAY_SECONDS);
+        }
 
-    @Override
-    public void update(CreatureControl entity) {
+        @Override
+        public void exit(CreatureControl entity) {
 
-    }
+        }
 
-    @Override
-    public void exit(CreatureControl entity) {
-
-    }
-
-    @Override
-    public boolean onMessage(CreatureControl entity, Telegram telegram) {
-        return true;
-    }
+        @Override
+        public boolean onMessage(CreatureControl entity, Telegram telegram) {
+            return true;
+        }
+    };
 }
