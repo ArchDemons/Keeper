@@ -20,6 +20,7 @@ import com.jme3.math.Vector2f;
 import java.util.Objects;
 import toniarts.openkeeper.game.task.AbstractTileTask;
 import toniarts.openkeeper.tools.convert.map.ArtResource;
+import toniarts.openkeeper.tools.convert.map.Creature;
 import toniarts.openkeeper.utils.WorldUtils;
 import toniarts.openkeeper.world.WorldState;
 import toniarts.openkeeper.world.creature.CreatureControl;
@@ -73,7 +74,7 @@ public class RescueCreatureTask extends AbstractTileTask {
     }
 
     @Override
-    public ArtResource getTaskAnimation(CreatureControl creature) {
+    public Creature.AnimationType getTaskAnimation() {
         return null;
     }
 

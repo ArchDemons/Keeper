@@ -17,6 +17,7 @@
 package toniarts.openkeeper.world.animation;
 
 import com.jme3.scene.control.Control;
+import toniarts.openkeeper.tools.convert.map.Creature;
 
 /**
  * An interface for handling our animations, callbacks
@@ -31,13 +32,26 @@ public interface AnimationControl extends Control {
      */
     public void onAnimationStop();
 
+    //public boolean isAnimationCycleDone();
+
     /**
      * Main animation cycle is done
+     * @param count number of cycles
      */
-    public void onAnimationCycleDone();
+    public void onAnimationCycleDone(int count);
 
     /**
      * Should we stop the animation
+     * @return yes or not
      */
     public boolean isStopAnimation();
+
+    /**
+     * Set stop the animation
+     */
+    //public void animationStop();
+
+    //public boolean isAnimationPlaying();
+
+    //public Creature.AnimationType getAnimationTypePlaying();
 }

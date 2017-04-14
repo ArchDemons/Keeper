@@ -23,6 +23,7 @@ import java.util.Date;
 import java.util.Deque;
 import toniarts.openkeeper.game.task.Task;
 import toniarts.openkeeper.tools.convert.map.ArtResource;
+import toniarts.openkeeper.tools.convert.map.Creature;
 import toniarts.openkeeper.world.creature.CreatureControl;
 
 /**
@@ -94,8 +95,8 @@ public class ObjectiveTaskDecorator implements Task, ObjectiveTask {
     }
 
     @Override
-    public ArtResource getTaskAnimation(CreatureControl creature) {
-        return task.getTaskAnimation(creature);
+    public Creature.AnimationType getTaskAnimation() {
+        return task.getTaskAnimation();
     }
 
     @Override

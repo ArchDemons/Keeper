@@ -83,7 +83,7 @@ public final class MapData {
      * @return the tile data
      */
     @Nullable
-    public TileData getTile(Point p) {
+    public TileData getTile(@Nonnull Point p) {
         return getTile(p.x, p.y);
     }
 }

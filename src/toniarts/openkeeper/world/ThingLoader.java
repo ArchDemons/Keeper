@@ -274,7 +274,7 @@ public class ThingLoader {
         }
         CreatureControl creatureControl = creature.getControl(CreatureControl.class);
         if (entrance) {
-            creatureControl.getStateMachine().setInitialState(CreatureState.ENTERING_DUNGEON);
+            creatureControl.getStateMachine().changeState(CreatureState.ENTRANCE);
         }
         creatures.add(creatureControl);
 

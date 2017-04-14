@@ -72,7 +72,7 @@ public class AnimationLoader {
 
                                 // Start the real animation
                                 Spatial spat = root.getChild(resource.getName());
-                                AnimControl animControl = (AnimControl) spat.getControl(0);
+                                AnimControl animControl = spat.getControl(AnimControl.class);
                                 spat.setCullHint(Spatial.CullHint.Inherit);
                                 AnimChannel c = animControl.getChannel(0);
                                 LoopMode loopMode = c.getLoopMode();
@@ -131,11 +131,17 @@ public class AnimationLoader {
                     animControl.setEnabled(false);
                     animControl.addListener(new AnimEventListener() {
 
+                        private int cyclesCount = 0;
+
                         @Override
                         public void onAnimCycleDone(AnimControl control, AnimChannel channel, String animName) {
 
                             // Signal that the main animation cycle is done
-                            animationControl.onAnimationCycleDone();
+                            cyclesCount++;
+                            if (channel.getLoopMode() == LoopMode.Cycle && cyclesCount > 1) {
+                                return;
+                            }
+                            animationControl.onAnimationCycleDone(cyclesCount);
 
                             // See if we need to stop
                             if (animationControl.isStopAnimation() || channel.getLoopMode() == LoopMode.DontLoop) {
@@ -150,7 +156,7 @@ public class AnimationLoader {
                                     control.getSpatial().setCullHint(Spatial.CullHint.Always);
 
                                     Spatial spat = root.getChild(END_ANIMATION_NAME);
-                                    AnimControl animControl = (AnimControl) spat.getControl(0);
+                                    AnimControl animControl = spat.getControl(AnimControl.class);
                                     spat.setCullHint(Spatial.CullHint.Inherit);
                                     AnimChannel c = animControl.getChannel(0);
                                     LoopMode loopMode = c.getLoopMode();

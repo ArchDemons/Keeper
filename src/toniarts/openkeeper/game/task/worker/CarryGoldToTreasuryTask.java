@@ -19,6 +19,7 @@ package toniarts.openkeeper.game.task.worker;
 import com.jme3.math.Vector2f;
 import toniarts.openkeeper.game.task.AbstractRoomTask;
 import toniarts.openkeeper.tools.convert.map.ArtResource;
+import toniarts.openkeeper.tools.convert.map.Creature;
 import toniarts.openkeeper.utils.WorldUtils;
 import toniarts.openkeeper.world.WorldState;
 import toniarts.openkeeper.world.creature.CreatureControl;
@@ -64,13 +65,12 @@ public class CarryGoldToTreasuryTask extends AbstractRoomTask {
     public void executeTask(CreatureControl creature) {
         int gold = creature.getGold();
         creature.substractGold(gold - worldState.addGold(playerId, getTaskLocation(), gold));
-
         // This is a one timer
         executed = true;
     }
 
     @Override
-    public ArtResource getTaskAnimation(CreatureControl creature) {
+    public Creature.AnimationType getTaskAnimation() {
         return null;
     }
 

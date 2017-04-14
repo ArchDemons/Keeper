@@ -19,7 +19,9 @@ package toniarts.openkeeper.game.task;
 import com.jme3.math.Vector2f;
 import java.awt.Point;
 import java.util.Date;
+import javax.annotation.Nullable;
 import toniarts.openkeeper.tools.convert.map.ArtResource;
+import toniarts.openkeeper.tools.convert.map.Creature;
 import toniarts.openkeeper.world.creature.CreatureControl;
 
 /**
@@ -85,10 +87,10 @@ public interface Task {
      * Get the animation used for the task. Might be null if no animation is
      * tied to the task, sufficient to have the creature visit the location
      *
-     * @param creature executing the task
      * @return the animation
      */
-    ArtResource getTaskAnimation(CreatureControl creature);
+    @Nullable
+    Creature.AnimationType getTaskAnimation();
 
     Date getTaskCreated();
 

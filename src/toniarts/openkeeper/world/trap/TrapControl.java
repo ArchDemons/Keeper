@@ -199,7 +199,7 @@ public class TrapControl extends HighlightControl implements IInteractiveControl
     }
 
     @Override
-    public void onAnimationCycleDone() {
+    public void onAnimationCycleDone(int count) {
         //
     }
 

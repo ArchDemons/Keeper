@@ -20,6 +20,7 @@ import com.badlogic.gdx.ai.pfa.GraphPath;
 import com.jme3.math.Vector2f;
 import java.util.Iterator;
 import toniarts.openkeeper.tools.convert.map.ArtResource;
+import toniarts.openkeeper.tools.convert.map.Creature;
 import toniarts.openkeeper.tools.convert.map.Terrain;
 import toniarts.openkeeper.tools.convert.map.Thing;
 import toniarts.openkeeper.utils.WorldUtils;
@@ -72,7 +73,7 @@ public class KillPlayer extends AbstractObjectiveTask {
     }
 
     @Override
-    public ArtResource getTaskAnimation(CreatureControl creature) {
+    public Creature.AnimationType getTaskAnimation() {
         return null;
     }
 

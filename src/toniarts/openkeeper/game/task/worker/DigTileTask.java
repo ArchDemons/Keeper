@@ -19,7 +19,7 @@ package toniarts.openkeeper.game.task.worker;
 import com.jme3.math.Vector2f;
 import java.awt.Point;
 import toniarts.openkeeper.game.task.AbstractTileTask;
-import toniarts.openkeeper.tools.convert.map.ArtResource;
+import toniarts.openkeeper.tools.convert.map.Creature;
 import toniarts.openkeeper.world.TileData;
 import toniarts.openkeeper.world.WorldState;
 import toniarts.openkeeper.world.creature.CreatureControl;
@@ -93,8 +93,8 @@ public class DigTileTask extends AbstractTileTask {
     }
 
     @Override
-    public ArtResource getTaskAnimation(CreatureControl creature) {
-        return creature.getCreature().getAnimMelee1Resource();
+    public Creature.AnimationType getTaskAnimation() {
+        return Creature.AnimationType.MELEE_ATTACK;
     }
 
     @Override

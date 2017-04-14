@@ -22,6 +22,7 @@ import toniarts.openkeeper.game.player.PlayerSpellControl;
 import toniarts.openkeeper.game.task.AbstractCapacityCriticalRoomTask;
 import toniarts.openkeeper.game.task.TaskManager;
 import toniarts.openkeeper.tools.convert.map.ArtResource;
+import toniarts.openkeeper.tools.convert.map.Creature;
 import toniarts.openkeeper.utils.WorldUtils;
 import toniarts.openkeeper.world.WorldState;
 import toniarts.openkeeper.world.creature.CreatureControl;
@@ -74,8 +75,8 @@ public class ResearchSpells extends AbstractCapacityCriticalRoomTask {
     }
 
     @Override
-    public ArtResource getTaskAnimation(CreatureControl creature) {
-        return creature.getCreature().getAnimResearchResource();
+    public Creature.AnimationType getTaskAnimation() {
+        return Creature.AnimationType.RESEARCHING;
     }
 
     @Override

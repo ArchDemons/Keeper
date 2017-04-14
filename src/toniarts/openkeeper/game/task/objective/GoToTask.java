@@ -18,6 +18,7 @@ package toniarts.openkeeper.game.task.objective;
 
 import com.jme3.math.Vector2f;
 import toniarts.openkeeper.tools.convert.map.ArtResource;
+import toniarts.openkeeper.tools.convert.map.Creature;
 import toniarts.openkeeper.utils.WorldUtils;
 import toniarts.openkeeper.world.WorldState;
 import toniarts.openkeeper.world.creature.CreatureControl;
@@ -56,7 +57,7 @@ public class GoToTask extends AbstractObjectiveTask {
     }
 
     @Override
-    public ArtResource getTaskAnimation(CreatureControl creature) {
+    public Creature.AnimationType getTaskAnimation() {
         return null;
     }
 

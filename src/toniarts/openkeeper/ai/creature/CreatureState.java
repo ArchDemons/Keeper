@@ -18,6 +18,10 @@ package toniarts.openkeeper.ai.creature;
 
 import com.badlogic.gdx.ai.fsm.State;
 import com.badlogic.gdx.ai.msg.Telegram;
+import com.jme3.math.Vector3f;
+import toniarts.openkeeper.tools.convert.ConversionUtils;
+import toniarts.openkeeper.tools.convert.map.Creature;
+import toniarts.openkeeper.utils.Utils;
 import toniarts.openkeeper.world.creature.CreatureControl;
 
 /**
@@ -30,8 +34,11 @@ public enum CreatureState implements State<CreatureControl> {
 
     IDLE() {
 
+        Creature.AnimationType idleAnimation = null;
+
         @Override
         public void enter(CreatureControl entity) {
+            entity.setStatusText(Utils.getMainTextResourceBundle().getString("2599"));
 
             // Should we flee or attack
             if (entity.shouldFleeOrAttack()) {
@@ -40,9 +47,13 @@ public enum CreatureState implements State<CreatureControl> {
 
             // Idling is the last resort
             entity.unassingCurrentTask();
-            if (!findStuffToDo(entity)) {
-                entity.navigateToRandomPoint();
+            if (findStuffToDo(entity)) {
+                return;
             }
+
+            idleAnimation = entity.getAnimationIdle();
+            entity.animationPlayState(idleAnimation);
+            entity.animationStop();
         }
 
         private boolean findStuffToDo(CreatureControl entity) {
@@ -85,11 +96,11 @@ public enum CreatureState implements State<CreatureControl> {
         public void update(CreatureControl entity) {
 
             // Should we flee or attack
-            if (entity.shouldFleeOrAttack()) {
+            if (entity.shouldFleeOrAttack() || findStuffToDo(entity)) {
                 return;
             }
 
-            if (!findStuffToDo(entity) && entity.getIdleAnimationPlayCount() > 0 && entity.isStopped()) {
+            if (!entity.isAnimationPlaying()) {
                 entity.navigateToRandomPoint();
             }
         }
@@ -104,10 +115,48 @@ public enum CreatureState implements State<CreatureControl> {
             return true;
         }
     },
+    MOVE() {
+
+        Creature.AnimationType moveAnimation;
+
+        @Override
+        public void enter(CreatureControl entity) {
+            moveAnimation = Creature.AnimationType.WALK;
+            entity.animationPlayState(Creature.AnimationType.WALK);
+        }
+
+        @Override
+        public void update(CreatureControl entity) {
+            // Should we flee or attack
+            if (entity.shouldFleeOrAttack()) {
+                return;
+            }
+
+            if (entity.isStopped()) {
+                entity.animationStop();
+            }
+
+            if (!entity.isAnimationPlaying()) {
+                entity.getStateMachine().revertToPreviousState();
+            }
+        }
+
+        @Override
+        public void exit(CreatureControl entity) {
+
+        }
+
+        @Override
+        public boolean onMessage(CreatureControl entity, Telegram telegram) {
+            return true;
+        }
+
+    },
     WANDER() {
 
         @Override
         public void enter(CreatureControl entity) {
+            entity.setStatusText(Utils.getMainTextResourceBundle().getString("2628"));
 //                    entity.wander();
         }
 
@@ -132,7 +181,9 @@ public enum CreatureState implements State<CreatureControl> {
     DEAD() {
         @Override
         public void enter(CreatureControl entity) {
+            entity.setStatusText(Utils.getMainTextResourceBundle().getString("2598"));
             entity.die();
+            entity.removeCreature();
         }
 
         @Override
@@ -151,31 +202,14 @@ public enum CreatureState implements State<CreatureControl> {
         public boolean onMessage(CreatureControl entity, Telegram telegram) {
             return true;
         }
-    }, SLAPPED {
+    },
+    WORK {
 
         @Override
         public void enter(CreatureControl entity) {
-
-        }
-
-        @Override
-        public void update(CreatureControl entity) {
-
-        }
-
-        @Override
-        public void exit(CreatureControl entity) {
-
-        }
-
-        @Override
-        public boolean onMessage(CreatureControl entity, Telegram telegram) {
-            return true;
-        }
-    }, WORK {
-
-        @Override
-        public void enter(CreatureControl entity) {
+            if (entity.getAssignedTask() != null) {
+                entity.setStatusText(entity.getAssignedTask().getTooltip());
+            }
             entity.navigateToAssignedTask();
         }
 
@@ -189,27 +223,26 @@ public enum CreatureState implements State<CreatureControl> {
 
             // Check arrival
             if (entity.isAtAssignedTaskTarget()) {
-
-                // If we have too much gold, drop it to the treasury
-                if (entity.isTooMuchGold()) {
-                    if (!entity.dropGoldToTreasury()) {
-                        entity.dropGold();
-                    }
-                }
-            } else if (entity.isStopped() && entity.isWorkNavigationRequired()) {
+                entity.executeAssignedTask();
+            } else if (entity.isStopped()) {
                 entity.navigateToAssignedTask();
+            }
+
+            // If we have too much gold, drop it to the treasury
+            if (entity.isTooMuchGold() && !entity.dropGoldToTreasury()) {
+                entity.dropGold();
             }
 
             // Check validity
             // If we have some pocket money left, we should return it to treasury
-            if (!entity.isAssignedTaskValid() && !entity.dropGoldToTreasury()) {
+            if (!entity.isAssignedTaskValid()) {
                 entity.getStateMachine().changeState(IDLE);
             }
         }
 
         @Override
         public void exit(CreatureControl entity) {
-
+            entity.animationStop();
         }
 
         @Override
@@ -221,6 +254,7 @@ public enum CreatureState implements State<CreatureControl> {
 
         @Override
         public void enter(CreatureControl entity) {
+            entity.setStatusText(Utils.getMainTextResourceBundle().getString("2651"));
             entity.unassingCurrentTask();
             CreatureControl attackTarget = entity.getAttackTarget();
             if (attackTarget != null && !entity.isWithinAttackDistance(attackTarget)) {
@@ -233,6 +267,11 @@ public enum CreatureState implements State<CreatureControl> {
             CreatureControl attackTarget = entity.getAttackTarget();
             if (attackTarget == null) {
                 entity.getStateMachine().changeState(IDLE); // Nothing to do
+                return;
+            }
+
+            // Should we flee or attack
+            if (entity.shouldFleeOrAttack()) {
                 return;
             }
 
@@ -261,7 +300,9 @@ public enum CreatureState implements State<CreatureControl> {
 
         @Override
         public void enter(CreatureControl entity) {
-            entity.followTarget(entity.getFollowTarget());
+            entity.setStatusText(Utils.getMainTextResourceBundle().getString("2675"));
+            //entity.navigateToRandomPointAroundTarget(entity.getFollowTarget(), 2);
+            //entity.followTarget(entity.getFollowTarget());
         }
 
         @Override
@@ -284,18 +325,16 @@ public enum CreatureState implements State<CreatureControl> {
                 return;
             }
 
-            // Don't let the target wander too far off
-            if (entity.isStopped() && !entity.getFollowTarget().isStopped() && entity.getDistanceToCreature(entity.getFollowTarget()) > 2.5f) {
-                entity.followTarget(entity);
-            } else if (entity.isStopped()) {
-                entity.navigateToRandomPointAroundTarget(entity.getFollowTarget(), 2);
+            // && entity.getDistanceToCreature(entity.getFollowTarget()) > 2.5f
+            if (entity.isStopped() && !entity.getFollowTarget().isStopped()) {
+                entity.navigateToRandomPointAroundTarget(entity.getFollowTarget(), 1);
             }
         }
 
         @Override
         public void exit(CreatureControl entity) {
-            entity.resetFollowTarget();
-            entity.stop();
+            //entity.resetFollowTarget();
+            //entity.stop();
         }
 
         @Override
@@ -304,21 +343,28 @@ public enum CreatureState implements State<CreatureControl> {
         }
 
     },
-    ENTERING_DUNGEON {
+    ENTRANCE {
 
         @Override
         public void enter(CreatureControl entity) {
-
+            entity.setStatusText("");
+            entity.loadEffect(entity.getCreature().getEntranceEffectId());
+            entity.animationPlayState(Creature.AnimationType.ENTRANCE);
+            entity.animationStop();
         }
 
         @Override
         public void update(CreatureControl entity) {
-            entity.getStateMachine().changeState(IDLE);
+            if (!entity.isAnimationPlaying()) {
+                entity.getStateMachine().changeState(IDLE);
+            }
         }
 
         @Override
         public void exit(CreatureControl entity) {
-
+            javax.vecmath.Vector3f temp = entity.getCreature().getAnimationOffsets(Creature.OffsetType.PORTAL_ENTRANCE);
+            Vector3f offset = ConversionUtils.convertVector(temp);
+            entity.getSpatial().move(offset);
         }
 
         @Override
@@ -331,7 +377,13 @@ public enum CreatureState implements State<CreatureControl> {
 
         @Override
         public void enter(CreatureControl entity) {
-
+            entity.setStatusText("");
+            entity.animationPlayState(Creature.AnimationType.IN_HAND);
+            entity.unassingCurrentTask();
+            entity.stop();
+            entity.setEnabled(false);
+            // Remove from view
+            entity.getSpatial().removeFromParent();
         }
 
         @Override
@@ -353,6 +405,7 @@ public enum CreatureState implements State<CreatureControl> {
 
         @Override
         public void enter(CreatureControl entity) {
+            entity.setStatusText(Utils.getMainTextResourceBundle().getString("2658"));
             entity.unassingCurrentTask();
             entity.flee();
         }
@@ -377,13 +430,19 @@ public enum CreatureState implements State<CreatureControl> {
     }, UNCONSCIOUS {
         @Override
         public void enter(CreatureControl entity) {
+            entity.setStatusText(Utils.getMainTextResourceBundle().getString("2655"));
+            entity.animationPlayState(Creature.AnimationType.DIE);
+            entity.showUnitFlower(Integer.MAX_VALUE);
+            entity.animationStop();
             entity.stop();
             entity.unassingCurrentTask();
         }
 
         @Override
         public void update(CreatureControl entity) {
-
+            if (entity.isAnimationCycleDone()) {
+                entity.animationPlayState(Creature.AnimationType.DEATH_POSE);
+            }
         }
 
         @Override
@@ -397,15 +456,25 @@ public enum CreatureState implements State<CreatureControl> {
         }
 
     }, STUNNED {
+        float stunTime;
 
         @Override
         public void enter(CreatureControl entity) {
-
+            entity.setStatusText(Utils.getMainTextResourceBundle().getString("2597"));
+            entity.animationPlayState(Creature.AnimationType.STUNNED);
+            stunTime = entity.getCreature().getAttributes().getStunDuration();
         }
 
         @Override
         public void update(CreatureControl entity) {
-
+            if (stunTime <= 0) {
+                entity.animationStop();
+                entity.getStateMachine().changeState(IDLE);
+                entity.setEnabled(true);
+            } else {
+                // FIXME need use tpf
+                stunTime -= 0.25f;
+            }
         }
 
         @Override
@@ -417,11 +486,47 @@ public enum CreatureState implements State<CreatureControl> {
         public boolean onMessage(CreatureControl entity, Telegram telegram) {
             return true;
         }
-    }, IMPRISONED {
+    },
+    FALLBACK {
 
         @Override
         public void enter(CreatureControl entity) {
+            entity.setStatusText("");
+            entity.animationPlayState(Creature.AnimationType.FALLBACK);
+            entity.animationStop();
+        }
 
+        @Override
+        public void update(CreatureControl entity) {
+            if (entity.getAnimationTypePlaying() == Creature.AnimationType.FALLBACK
+                    && !entity.isAnimationPlaying()) {
+                entity.animationPlayState(Creature.AnimationType.GET_UP);
+                entity.animationStop();
+            } else if (entity.getAnimationTypePlaying() == Creature.AnimationType.GET_UP
+                    && !entity.isAnimationPlaying()) {
+                Vector3f offset = ConversionUtils.convertVector(
+                        entity.getCreature().getAnimationOffsets(Creature.OffsetType.FALL_BACK_GET_UP));
+                entity.getSpatial().move(offset);
+                entity.getStateMachine().changeState(IDLE);
+
+            }
+        }
+
+        @Override
+        public void exit(CreatureControl entity) {
+
+        }
+
+        @Override
+        public boolean onMessage(CreatureControl entity, Telegram telegram) {
+            return true;
+        }
+    },
+    IMPRISONED {
+
+        @Override
+        public void enter(CreatureControl entity) {
+            entity.setStatusText(Utils.getMainTextResourceBundle().getString("2674"));
         }
 
         @Override
@@ -442,7 +547,7 @@ public enum CreatureState implements State<CreatureControl> {
 
         @Override
         public void enter(CreatureControl entity) {
-
+            entity.setStatusText(Utils.getMainTextResourceBundle().getString("2635"));
         }
 
         @Override
@@ -463,7 +568,7 @@ public enum CreatureState implements State<CreatureControl> {
 
         @Override
         public void enter(CreatureControl entity) {
-
+            entity.setStatusText(Utils.getMainTextResourceBundle().getString("2672"));
         }
 
         @Override
@@ -486,7 +591,7 @@ public enum CreatureState implements State<CreatureControl> {
 
         @Override
         public void enter(CreatureControl entity) {
-
+            entity.setStatusText(Utils.getMainTextResourceBundle().getString("2667"));
         }
 
         @Override
@@ -505,25 +610,27 @@ public enum CreatureState implements State<CreatureControl> {
         public boolean onMessage(CreatureControl entity, Telegram telegram) {
             return true;
         }
-    }, DRAGGED;
+    }, DRAGGED {
 
-    @Override
-    public void enter(CreatureControl entity) {
+        @Override
+        public void enter(CreatureControl entity) {
+            entity.setStatusText(Utils.getMainTextResourceBundle().getString("2655"));
+            entity.animationPlayState(Creature.AnimationType.DRAGGED);
+        }
 
-    }
+        @Override
+        public void update(CreatureControl entity) {
 
-    @Override
-    public void update(CreatureControl entity) {
+        }
 
-    }
+        @Override
+        public void exit(CreatureControl entity) {
+            entity.animationStop();
+        }
 
-    @Override
-    public void exit(CreatureControl entity) {
-
-    }
-
-    @Override
-    public boolean onMessage(CreatureControl entity, Telegram telegram) {
-        return true;
+        @Override
+        public boolean onMessage(CreatureControl entity, Telegram telegram) {
+            return true;
+        }
     }
 }

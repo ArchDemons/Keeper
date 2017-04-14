@@ -20,6 +20,7 @@ import com.jme3.math.Vector2f;
 import toniarts.openkeeper.game.task.AbstractCapacityCriticalRoomTask;
 import toniarts.openkeeper.game.task.TaskManager;
 import toniarts.openkeeper.tools.convert.map.ArtResource;
+import toniarts.openkeeper.tools.convert.map.Creature;
 import toniarts.openkeeper.utils.WorldUtils;
 import toniarts.openkeeper.world.WorldState;
 import toniarts.openkeeper.world.creature.CreatureControl;
@@ -76,7 +77,7 @@ public class CarryEnemyCreatureToPrison extends AbstractCapacityCriticalRoomTask
     }
 
     @Override
-    public ArtResource getTaskAnimation(CreatureControl creature) {
+    public Creature.AnimationType getTaskAnimation() {
         return null;
     }
 
